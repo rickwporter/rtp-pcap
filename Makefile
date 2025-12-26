@@ -44,6 +44,9 @@ clean: app-clean ## Cleanup application files
 realclean: ## Cleanup application and library files
 	$(QUIET)make clean
 
+format: ## Perform linting of file
+	clang-format -Werror -i src/*
+
 ###############################
 ##@ Build
 $(OBJ_DIR):
