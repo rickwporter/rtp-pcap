@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <arpa/inet.h> // for ntohs()
-#include <map>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <stdio.h>
@@ -72,7 +71,6 @@ using namespace std;
 // safe way to get the next string based on i
 #define NEXT_ARG(i, c, v) (i + 1 < c ? v[++i] : NULL)
 
-#define PKT_BUF_BYTES 2048
 #define RTP_STATS_WINDOW_PACKETS 64
 #define RTP_PTYPE_DTMF_DEFAULT 101
 
@@ -82,59 +80,6 @@ using namespace std;
 #define FILTER_FLAG_DADDR_SET (1 << 3)
 #define FILTER_FLAG_SPORT_SET (1 << 4)
 #define FILTER_FLAG_DPORT_SET (1 << 5)
-
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-// Types
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-typedef std::map<uint32_t, uint32_t> map_count_t;
-typedef map_count_t::iterator map_count_i;
-typedef std::map<uint8_t, std::string> rtpmap_t;
-
-typedef struct {
-    uint32_t total;
-    map_count_t ssrcs;
-    map_count_t codecs;
-} stream_counts_t;
-
-typedef map<uint16_t, stream_counts_t> port_counts_t;
-typedef map<uint32_t, port_counts_t> address_counts_t;
-
-// TODO: figure out why need to redefine on Mac
-typedef struct {
-    struct pcap_pkthdr pcap_hdr;
-    uint8_t buffer[PKT_BUF_BYTES];
-    iphdr *iph;
-    struct udphdr *udph;
-    rtphdr_t *rtph;
-} rtp_pcap_pkt_t;
-
-typedef enum {
-    tdisp_none,
-    tdisp_prevpacket,
-    tdisp_startcapture,
-    tdisp_timeofday,
-    tdisp_date,
-} time_display_t;
-
-typedef enum {
-    idisp_stream,
-    idisp_pcap,
-} index_display_t;
-
-typedef struct {
-    bool analyse;
-    bool summarize;
-    uint8_t dtmf_decode;
-    time_display_t time_type;
-    index_display_t index_type;
-} rtp_pcap_details_args_t;
-
-typedef struct {
-    bool odd;
-    bool all_udp;
-} rtp_pcap_list_args_t;
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
