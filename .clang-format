@@ -1,7 +1,7 @@
 ---
 Language:        Cpp
 AccessModifierOffset: -2
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: None
 AlignConsecutiveAssignments:
   Enabled:         false
@@ -87,10 +87,10 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 AttributeMacros:
   - __capability
-BinPackArguments: true
-BinPackLongBracedList: true
+BinPackArguments: false
+BinPackLongBracedList: false
 BinPackParameters: BinPack
-BitFieldColonSpacing: Both
+BitFieldColonSpacing: None
 BracedInitializerIndentWidth: -1
 BraceWrapping:
   AfterCaseLabel:  false

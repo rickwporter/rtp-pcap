@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 struct iphdr {
-    uint8_t ihl : 4, version : 4;
+    uint8_t ihl:4, version:4;
     uint8_t tos;
     uint16_t tot_len;
     uint16_t id;

@@ -332,16 +332,24 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
 
         // if a different destination IP address, ignore it
         if ((filter->flags & FILTER_FLAG_DADDR_SET) && iph->daddr != filter->daddr) {
-            DEBUG_PRINT("pkt[%u]: address (0x%08x) does not match destination filter "
-                        "(0x%08x)\n",
-                        *total_packets, iph->daddr, filter->daddr);
+            DEBUG_PRINT(
+                "pkt[%u]: address (0x%08x) does not match destination filter "
+                "(0x%08x)\n",
+                *total_packets,
+                iph->daddr,
+                filter->daddr
+            );
             continue;
         }
 
         if ((filter->flags & FILTER_FLAG_SADDR_SET) && iph->saddr != filter->saddr) {
-            DEBUG_PRINT("pkt[%u]: address (0x%08x) does not match source "
-                        "filter (0x%08x)\n",
-                        *total_packets, iph->saddr, filter->saddr);
+            DEBUG_PRINT(
+                "pkt[%u]: address (0x%08x) does not match source "
+                "filter (0x%08x)\n",
+                *total_packets,
+                iph->saddr,
+                filter->saddr
+            );
             continue;
         }
 
@@ -350,16 +358,24 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
 
         // if a different destination UDP port, ignore it
         if ((filter->flags & FILTER_FLAG_DPORT_SET) && udph->dest != filter->dport) {
-            DEBUG_PRINT("pkt[%u]: port (0x%04x) does not match destination "
-                        "filter (0x%04x)\n",
-                        *total_packets, udph->dest, filter->dport);
+            DEBUG_PRINT(
+                "pkt[%u]: port (0x%04x) does not match destination "
+                "filter (0x%04x)\n",
+                *total_packets,
+                udph->dest,
+                filter->dport
+            );
             continue;
         }
 
         if ((filter->flags & FILTER_FLAG_SPORT_SET) && udph->source != filter->sport) {
-            DEBUG_PRINT("pkt[%u]: port (0x%04x) does not match source filter "
-                        "(0x%04x)\n",
-                        *total_packets, udph->source, filter->sport);
+            DEBUG_PRINT(
+                "pkt[%u]: port (0x%04x) does not match source filter "
+                "(0x%04x)\n",
+                *total_packets,
+                udph->source,
+                filter->sport
+            );
             continue;
         }
 
@@ -422,8 +438,13 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
 
     addr.s_addr = htonl((filter->flags & FILTER_FLAG_DST_FILTER ? filter->daddr : filter->saddr));
     fprintf(stdout, "\n%s summary:\n", progname);
-    fprintf(stdout, "  IP %s: %s:%d\n", filter->flags & FILTER_FLAG_DST_FILTER ? "destination" : "source", inet_ntoa(addr),
-            filter->flags & FILTER_FLAG_DST_FILTER ? filter->dport : filter->sport);
+    fprintf(
+        stdout,
+        "  IP %s: %s:%d\n",
+        filter->flags & FILTER_FLAG_DST_FILTER ? "destination" : "source",
+        inet_ntoa(addr),
+        filter->flags & FILTER_FLAG_DST_FILTER ? filter->dport : filter->sport
+    );
     fprintf(stdout, "  RTP %u packets (%u in capture)\n", stream_pkt_count, total_pkt_count);
     fprintf(stdout, "  SSRCs (%zu):\n", ssrcs.size());
     for (icount = ssrcs.begin(); icount != ssrcs.end(); icount++) {
@@ -436,9 +457,10 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
     }
 }
 
-void rtp_pcap_details_time_display(time_display_t time_type, char *time_display, const size_t display_size, char *time_dspace,
-                                   const size_t space_size, const struct timeval *pkttime, const struct timeval *lastpkt,
-                                   const struct timeval *firstpkt) {
+void rtp_pcap_details_time_display(
+    time_display_t time_type, char *time_display, const size_t display_size, char *time_dspace, const size_t space_size,
+    const struct timeval *pkttime, const struct timeval *lastpkt, const struct timeval *firstpkt
+) {
     if (time_type == tdisp_prevpacket) {
         time_t sec = pkttime->tv_sec - lastpkt->tv_sec;
         unsigned long msecs = sec * 1000 + (pkttime->tv_usec - lastpkt->tv_usec) / 1000;
@@ -474,8 +496,10 @@ void rtp_pcap_details_time_display(time_display_t time_type, char *time_display,
     }
 }
 
-const char *rtp_pcap_details_analyze(char *output, size_t out_size, rtphdr_t *rtph, rtphdr_t *last_rtp, const rtpmap_t &rtpmap,
-                                     uint32_t samples_per_packet, uint8_t dtmf_decode, uint8_t last_dtmf_event, uint32_t last_dtmf_time) {
+const char *rtp_pcap_details_analyze(
+    char *output, size_t out_size, rtphdr_t *rtph, rtphdr_t *last_rtp, const rtpmap_t &rtpmap, uint32_t samples_per_packet, uint8_t dtmf_decode,
+    uint8_t last_dtmf_event, uint32_t last_dtmf_time
+) {
     rtp_event_t *dtmfh;
 
     *output = '\0';
@@ -490,15 +514,28 @@ const char *rtp_pcap_details_analyze(char *output, size_t out_size, rtphdr_t *rt
         snprintf(output, out_size, "***** SSRC changed from %u to %u ******\n", rtp_hdr_get_ssrc(last_rtp), rtp_hdr_get_ssrc(rtph));
     } else if (rtp_hdr_get_ptype(last_rtp) != rtp_hdr_get_ptype(rtph)) {
         if (rtp_hdr_get_sequence(last_rtp) + 1 == rtp_hdr_get_sequence(rtph))
-            snprintf(output, out_size, "***** Codec type change from %s(%u) to %s(%u) ******\n",
-                     rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)), rtp_hdr_get_ptype(last_rtp),
-                     rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)), rtp_hdr_get_ptype(rtph));
+            snprintf(
+                output,
+                out_size,
+                "***** Codec type change from %s(%u) to %s(%u) ******\n",
+                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)),
+                rtp_hdr_get_ptype(last_rtp),
+                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)),
+                rtp_hdr_get_ptype(rtph)
+            );
         else
-            snprintf(output, out_size,
-                     "***** Codec type change from %s(%u), seq=%u to %s(%u), seq=%u "
-                     "******\n",
-                     rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)), rtp_hdr_get_ptype(last_rtp), rtp_hdr_get_sequence(last_rtp),
-                     rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)), rtp_hdr_get_ptype(rtph), rtp_hdr_get_sequence(rtph));
+            snprintf(
+                output,
+                out_size,
+                "***** Codec type change from %s(%u), seq=%u to %s(%u), seq=%u "
+                "******\n",
+                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)),
+                rtp_hdr_get_ptype(last_rtp),
+                rtp_hdr_get_sequence(last_rtp),
+                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)),
+                rtp_hdr_get_ptype(rtph),
+                rtp_hdr_get_sequence(rtph)
+            );
     } else if (rtp_hdr_get_sequence(last_rtp) + 1 != rtp_hdr_get_sequence(rtph)) {
         int delta = rtp_hdr_get_sequence(rtph) - rtp_hdr_get_sequence(last_rtp);
 
@@ -508,8 +545,9 @@ const char *rtp_pcap_details_analyze(char *output, size_t out_size, rtphdr_t *rt
         else if (delta < 0 && delta > -RTP_STATS_WINDOW_PACKETS)
             snprintf(output, out_size, "***** Out of order RTP sequence number: back %d ******\n", -delta);
         else
-            snprintf(output, out_size, "***** Sequence number jump: last=%u, curr=%u ******\n", rtp_hdr_get_sequence(last_rtp),
-                     rtp_hdr_get_sequence(rtph));
+            snprintf(
+                output, out_size, "***** Sequence number jump: last=%u, curr=%u ******\n", rtp_hdr_get_sequence(last_rtp), rtp_hdr_get_sequence(rtph)
+            );
     }
     // check this before doing the normal timestamp checking, since DTMF breaks
     // the timestamp rules
@@ -517,26 +555,43 @@ const char *rtp_pcap_details_analyze(char *output, size_t out_size, rtphdr_t *rt
         // NOTE: this is a bit of a hack... it is getting a pointer beyond the
         // data structure assuming the DTMF payload is after it
         dtmfh = (rtp_event_t *)rtp_hdr_get_payload(rtph);
-        snprintf(output, out_size,
-                 "***** New DTMF event: old id=%u, timestamp=%u; new id=%d, "
-                 "timestamp=%u ******\n",
-                 last_dtmf_event, last_dtmf_time, rtp_hdr_get_timestamp(rtph), rtp_event_get_event(dtmfh));
+        snprintf(
+            output,
+            out_size,
+            "***** New DTMF event: old id=%u, timestamp=%u; new id=%d, "
+            "timestamp=%u ******\n",
+            last_dtmf_event,
+            last_dtmf_time,
+            rtp_hdr_get_timestamp(rtph),
+            rtp_event_get_event(dtmfh)
+        );
     } else if (samples_per_packet != 0 && rtp_hdr_get_timestamp(last_rtp) + samples_per_packet != rtp_hdr_get_timestamp(rtph)) {
         if (rtp_hdr_get_marker(rtph))
-            snprintf(output, out_size, "***** Marked silence gap of %u samples ******\n",
-                     rtp_hdr_get_timestamp(rtph) - rtp_hdr_get_timestamp(last_rtp) - samples_per_packet);
+            snprintf(
+                output,
+                out_size,
+                "***** Marked silence gap of %u samples ******\n",
+                rtp_hdr_get_timestamp(rtph) - rtp_hdr_get_timestamp(last_rtp) - samples_per_packet
+            );
         else
-            snprintf(output, out_size,
-                     "***** Timestamp discontinuity (possible silence): old(%u) + "
-                     "expected(%u) != new(%u) ******\n",
-                     rtp_hdr_get_timestamp(last_rtp), samples_per_packet, rtp_hdr_get_timestamp(rtph));
+            snprintf(
+                output,
+                out_size,
+                "***** Timestamp discontinuity (possible silence): old(%u) + "
+                "expected(%u) != new(%u) ******\n",
+                rtp_hdr_get_timestamp(last_rtp),
+                samples_per_packet,
+                rtp_hdr_get_timestamp(rtph)
+            );
     }
 
     return output;
 }
 
-const char *rtp_pcap_details_packet_display(char *output, size_t out_size, rtphdr_t *rtph, uint32_t index, const char *time_display,
-                                            const rtpmap_t &rtpmap, uint8_t dtmf_decode, int payload_len) {
+const char *rtp_pcap_details_packet_display(
+    char *output, size_t out_size, rtphdr_t *rtph, uint32_t index, const char *time_display, const rtpmap_t &rtpmap, uint8_t dtmf_decode,
+    int payload_len
+) {
     char payload_display[512];
     rtp_event_t *dtmfh;
 
@@ -547,22 +602,40 @@ const char *rtp_pcap_details_packet_display(char *output, size_t out_size, rtphd
             // NOTE: this is a bit of a hack -- it assumes that the DTMF payload
             // follows the RTP header
             dtmfh = (rtp_event_t *)rtp_hdr_get_payload(rtph);
-            snprintf(payload_display, sizeof(payload_display) - 1, ", DTMF id=%u, duration=%u%s", rtp_event_get_event(dtmfh),
-                     rtp_event_get_duration(dtmfh), (dtmfh->e ? " (end)" : ""));
+            snprintf(
+                payload_display,
+                sizeof(payload_display) - 1,
+                ", DTMF id=%u, duration=%u%s",
+                rtp_event_get_event(dtmfh),
+                rtp_event_get_duration(dtmfh),
+                (dtmfh->e ? " (end)" : "")
+            );
         } else {
             snprintf(payload_display, sizeof(payload_display) - 1, ", payload bytes=%d", payload_len);
         }
-        snprintf(output, out_size, "%6d %s Payload type=%s(%d), SSRC=0x%08X, Seq=%u, Time=%u%s%s\n", index, time_display,
-                 rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)), rtp_hdr_get_ptype(rtph), rtp_hdr_get_ssrc(rtph),
-                 rtp_hdr_get_sequence(rtph), rtp_hdr_get_timestamp(rtph), rtp_hdr_get_marker(rtph) ? ", Mark" : "", payload_display);
+        snprintf(
+            output,
+            out_size,
+            "%6d %s Payload type=%s(%d), SSRC=0x%08X, Seq=%u, Time=%u%s%s\n",
+            index,
+            time_display,
+            rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)),
+            rtp_hdr_get_ptype(rtph),
+            rtp_hdr_get_ssrc(rtph),
+            rtp_hdr_get_sequence(rtph),
+            rtp_hdr_get_timestamp(rtph),
+            rtp_hdr_get_marker(rtph) ? ", Mark" : "",
+            payload_display
+        );
     }
 
     return output;
 }
 
-const char *rtp_pcap_details_packet_summary(char *output, size_t out_size, rtphdr_t *last_rtp, uint32_t n_suppressed, uint32_t index_start,
-                                            uint32_t index_end, const char *time_display, const rtpmap_t &rtpmap, uint8_t dtmf_decode,
-                                            uint8_t last_dtmf_event, uint32_t samples_per_packet) {
+const char *rtp_pcap_details_packet_summary(
+    char *output, size_t out_size, rtphdr_t *last_rtp, uint32_t n_suppressed, uint32_t index_start, uint32_t index_end, const char *time_display,
+    const rtpmap_t &rtpmap, uint8_t dtmf_decode, uint8_t last_dtmf_event, uint32_t samples_per_packet
+) {
     char payload_display[512];
 
     payload_display[0] = '\0';
@@ -574,9 +647,20 @@ const char *rtp_pcap_details_packet_summary(char *output, size_t out_size, rtphd
         snprintf(payload_display, sizeof(payload_display) - 1, ", Time=%u samples/pkt", samples_per_packet);
     }
 
-    snprintf(output, out_size, "%6d-%d  %sPayload type=%s(%d), SSRC=0x%08X, Seq=%u-%u%s\n", index_start, index_end, time_display,
-             rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)), rtp_hdr_get_ptype(last_rtp), rtp_hdr_get_ssrc(last_rtp),
-             rtp_hdr_get_sequence(last_rtp) - n_suppressed + 1, rtp_hdr_get_sequence(last_rtp) - 1, payload_display);
+    snprintf(
+        output,
+        out_size,
+        "%6d-%d  %sPayload type=%s(%d), SSRC=0x%08X, Seq=%u-%u%s\n",
+        index_start,
+        index_end,
+        time_display,
+        rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)),
+        rtp_hdr_get_ptype(last_rtp),
+        rtp_hdr_get_ssrc(last_rtp),
+        rtp_hdr_get_sequence(last_rtp) - n_suppressed + 1,
+        rtp_hdr_get_sequence(last_rtp) - 1,
+        payload_display
+    );
 
     return output;
 }
@@ -622,8 +706,19 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
         if (0 != result) {
             // if we have any "suppressed packets", print out the balance
             if (n_suppressed) {
-                rtp_pcap_details_packet_summary(pkt_summary, sizeof(pkt_summary), &last_rtp, n_suppressed, index_sup_first, index_sup_last,
-                                                time_summary, rtpmap, dtmf_decode, last_dtmf_event, samples_per_packet);
+                rtp_pcap_details_packet_summary(
+                    pkt_summary,
+                    sizeof(pkt_summary),
+                    &last_rtp,
+                    n_suppressed,
+                    index_sup_first,
+                    index_sup_last,
+                    time_summary,
+                    rtpmap,
+                    dtmf_decode,
+                    last_dtmf_event,
+                    samples_per_packet
+                );
                 fprintf(stdout, "%s", pkt_summary);
                 fprintf(stdout, "%s", pkt_display);
             }
@@ -649,8 +744,9 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
         }
 
         // prepare the buffers for time displays
-        rtp_pcap_details_time_display(time_type, time_display, sizeof(time_display), time_summary, sizeof(time_summary), &packet.pcap_hdr.ts,
-                                      &last_clock, &first_clock);
+        rtp_pcap_details_time_display(
+            time_type, time_display, sizeof(time_display), time_summary, sizeof(time_summary), &packet.pcap_hdr.ts, &last_clock, &first_clock
+        );
 
         // print the packets out in a tcpdump fashion, according to input (if
         // not suppressing or anything changed)
@@ -663,8 +759,19 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
                 // summarize skipped packets, if more than the currently
                 // buffered
                 if (n_suppressed > 1) {
-                    rtp_pcap_details_packet_summary(pkt_summary, sizeof(pkt_summary), &last_rtp, n_suppressed, index_sup_first, index_sup_last,
-                                                    time_summary, rtpmap, dtmf_decode, last_dtmf_event, samples_per_packet);
+                    rtp_pcap_details_packet_summary(
+                        pkt_summary,
+                        sizeof(pkt_summary),
+                        &last_rtp,
+                        n_suppressed,
+                        index_sup_first,
+                        index_sup_last,
+                        time_summary,
+                        rtpmap,
+                        dtmf_decode,
+                        last_dtmf_event,
+                        samples_per_packet
+                    );
                     fprintf(stdout, "%s", pkt_summary);
                 }
 
@@ -677,15 +784,17 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
             // if analyzing (and not the first packet)
             if (analysis && stream_pkt_count > 1) {
                 char analysis[512];
-                rtp_pcap_details_analyze(analysis, sizeof(analysis), rtph, &last_rtp, rtpmap, samples_per_packet, dtmf_decode, last_dtmf_event,
-                                         last_dtmf_time);
+                rtp_pcap_details_analyze(
+                    analysis, sizeof(analysis), rtph, &last_rtp, rtpmap, samples_per_packet, dtmf_decode, last_dtmf_event, last_dtmf_time
+                );
                 if (strlen(analysis) != 0) {
                     fprintf(stdout, "%s", analysis);
                 }
             }
 
-            rtp_pcap_details_packet_display(pkt_display, sizeof(pkt_display), rtph, index_cur, time_display, rtpmap, dtmf_decode,
-                                            rtp_pcap_packet_get_rtp_payload_length(&packet));
+            rtp_pcap_details_packet_display(
+                pkt_display, sizeof(pkt_display), rtph, index_cur, time_display, rtpmap, dtmf_decode, rtp_pcap_packet_get_rtp_payload_length(&packet)
+            );
             fprintf(stdout, "%s", pkt_display);
         } else {
             // buffer the data, so we can dump it out at the end of the file
@@ -697,8 +806,9 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
                 index_sup_last = (index_type == idisp_stream ? stream_pkt_count : (index_type == idisp_pcap ? total_pkt_count : 0));
             }
 
-            rtp_pcap_details_packet_display(pkt_display, sizeof(pkt_display), rtph, index_cur, time_display, rtpmap, dtmf_decode,
-                                            rtp_pcap_packet_get_rtp_payload_length(&packet));
+            rtp_pcap_details_packet_display(
+                pkt_display, sizeof(pkt_display), rtph, index_cur, time_display, rtpmap, dtmf_decode, rtp_pcap_packet_get_rtp_payload_length(&packet)
+            );
         }
 
         // if current packet is valid RTP, check a few things (before
