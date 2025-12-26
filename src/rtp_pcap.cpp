@@ -671,6 +671,11 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
         }
 
         rtph = packet.rtph;
+        if (stream_pkt_count == 0 && rtp_hdr_get_version(rtph) != RFC_1889_VERSION) {
+            // ignore non-rtp streams
+            continue;
+        }
+
         stream_pkt_count++;
         index_cur = (index_type == idisp_stream ? stream_pkt_count : (index_type == idisp_pcap ? total_pkt_count : 0));
 
