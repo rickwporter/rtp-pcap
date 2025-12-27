@@ -90,9 +90,13 @@ void usage(const char *progname) {
     fprintf(stdout, "\n%s usage:\n\n", progname);
     fprintf(stdout, "  %s <action> %s %s [arguments]\n\n", progname, ARG_FILE, AFMT_FILE);
     fprintf(stdout, SECTION_FMT, "Actions");
+    fprintf(stdout, ACTION_FMT, ARG_ACT_LIST, "List all RTP streams");
     fprintf(stdout, ACTION_FMT, ARG_ACT_SUMMARY, "Summarize the RTP stream");
     fprintf(stdout, ACTION_FMT, ARG_ACT_DETAILS, "Provide RTP packet details");
-    fprintf(stdout, ACTION_FMT, ARG_ACT_LIST, "List all RTP streams");
+    fprintf(stdout, "\n");
+    fprintf(stdout, SECTION_FMT, "list arguments");
+    fprintf(stdout, HELP_FMT, ARG_ODD, AFMT_ODD, "Include odd # ports in list (default only considers even)");
+    fprintf(stdout, HELP_FMT, ARG_ALL, AFMT_ALL, "Print all UDP packets (not just suspected RTP)");
     fprintf(stdout, "\n");
     fprintf(stdout, SECTION_FMT, "Common arguments");
     fprintf(stdout, HELP_FMT, ARG_FILE, AFMT_FILE, "PCAP file");
@@ -108,10 +112,6 @@ void usage(const char *progname) {
     fprintf(stdout, HELP_FMT, ARG_INDEX, AFMT_INDEX, "Index type (default is stream)");
     fprintf(stdout, HELP_FMT, ARG_TIME, AFMT_TIME, "Time display format (default=none)");
     fprintf(stdout, HELP_FMT, ARG_DTMF, AFMT_DTMF, "RTP payload type for DTMF decodes (default=101)");
-    fprintf(stdout, "\n");
-    fprintf(stdout, SECTION_FMT, "list arguments");
-    fprintf(stdout, HELP_FMT, ARG_ODD, AFMT_ODD, "Include odd # ports in list (default only considers even)");
-    fprintf(stdout, HELP_FMT, ARG_ALL, AFMT_ALL, "Print all UDP packets (not just suspected RTP)");
     fprintf(stdout, "\n");
 }
 

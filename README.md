@@ -14,9 +14,13 @@ rtp-pcap usage:
   rtp-pcap <action> --file <file> [arguments]
 
   Actions             
+          list : List all RTP streams
        summary : Summarize the RTP stream
        details : Provide RTP packet details
-          list : List all RTP streams
+
+  list arguments      
+      --odd           : Include odd # ports in list (default only considers even)
+      --all           : Print all UDP packets (not just suspected RTP)
 
   Common arguments    
       --file  <file>  : PCAP file
@@ -32,11 +36,6 @@ rtp-pcap usage:
       --index <pcap|stream>: Index type (default is stream)
       --time  <none|previous|capture|timeofday|date>: Time display format (default=none)
       --dtmf  <num>   : RTP payload type for DTMF decodes (default=101)
-
-  list arguments      
-      --odd           : Include odd # ports in list (default only considers even)
-      --all           : Print all UDP packets (not just suspected RTP)
-
 $
 ```
 
