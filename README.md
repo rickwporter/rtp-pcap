@@ -72,6 +72,7 @@ There are a few requirements to build the project:
 * `clang-format` linter
 * Libraries (installed)
     * `libpcap` used for parsing packets from file
+    * `libsrtp2` used for encrypting/decrypting packets from file
 
 
 ## Contributing
