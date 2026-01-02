@@ -106,6 +106,8 @@ void usage(const char *progname) {
     fprintf(stdout, ACTION_FMT, ARG_ACT_LIST, "List all RTP streams");
     fprintf(stdout, ACTION_FMT, ARG_ACT_SUMMARY, "Summarize the RTP stream");
     fprintf(stdout, ACTION_FMT, ARG_ACT_DETAILS, "Provide RTP packet details");
+    fprintf(stdout, ACTION_FMT, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP");
+    fprintf(stdout, ACTION_FMT, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP");
     fprintf(stdout, "\n");
     fprintf(stdout, SECTION_FMT, "list arguments");
     fprintf(stdout, HELP_FMT, ARG_ODD, AFMT_ODD, "Include odd # ports in list (default only considers even)");
@@ -880,10 +882,10 @@ srtp_algorithm_t rtp_pcap_parse_srtp_alg(const char *algstr) {
     if (NULL == algstr) {
         return srtp_alg_none;
     }
-    if (NULL != strstr("32", algstr)) {
+    if (NULL != strstr(algstr, "32")) {
         return srtp_alg_aes128_sha1_32bit;
     }
-    if (NULL != strstr("80", algstr)) {
+    if (NULL != strstr(algstr, "80")) {
         return srtp_alg_aes128_sha1_80bit;
     }
 
@@ -995,6 +997,9 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
     int delta_length;
     int key_length;
 
+    memset(&srtp_sess, 0, sizeof(srtp_sess));
+    memset(&srtp_policy, 0, sizeof(srtp_policy));
+
     if (args->alg == srtp_alg_none) {
         fprintf(stdout, "\n%s: invalid algorithm specified!\n", progname);
         return;
@@ -1039,21 +1044,9 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
     if (args->debug) {
         srtp_set_debug_module("srtp", 1);
         srtp_set_debug_module("cipher", 1);
-        srtp_set_debug_module("aes_icm", 1);
-        srtp_set_debug_module("auth", 1);
-        srtp_set_debug_module("hmac", 1);
-    }
-
-    output = pcap_open_dead_with_tstamp_precision(pcap_datalink(input), pcap_snapshot(input), pcap_get_tstamp_precision(input));
-    if (NULL == output) {
-        fprintf(stdout, "\n%s: unable to create output pcap!\n", progname);
-        return;
-    }
-
-    dumper = pcap_dump_open(output, args->outfile.c_str());
-    if (NULL == dumper) {
-        fprintf(stdout, "\n%s: unable to open output file (%s)!\n", progname, args->outfile.c_str());
-        return;
+        srtp_set_debug_module("aes icm", 1);
+        srtp_set_debug_module("auth func", 1);
+        srtp_set_debug_module("hmac sha1", 1);
     }
 
     // initialize the policy that is used to create the context
@@ -1072,6 +1065,18 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
     srtp_status = srtp_create(&srtp_sess, &srtp_policy);
     if (srtp_err_status_ok != srtp_status) {
         fprintf(stdout, "\n%s: failed to create srtp context: %d!\n", progname, srtp_status);
+        return;
+    }
+
+    output = pcap_open_dead_with_tstamp_precision(pcap_datalink(input), pcap_snapshot(input), pcap_get_tstamp_precision(input));
+    if (NULL == output) {
+        fprintf(stdout, "\n%s: unable to create output pcap!\n", progname);
+        return;
+    }
+
+    dumper = pcap_dump_open(output, args->outfile.c_str());
+    if (NULL == dumper) {
+        fprintf(stdout, "\n%s: unable to open output file (%s)!\n", progname, args->outfile.c_str());
         return;
     }
 
@@ -1236,6 +1241,10 @@ int main(int argc, char *argv[]) {
         } else if (0 == strcasecmp(ARG_ACT_DETAILS, arg)) {
             action = arg;
         } else if (0 == strcasecmp(ARG_ACT_LIST, arg)) {
+            action = arg;
+        } else if (0 == strcasecmp(ARG_ACT_DECRYPT, arg)) {
+            action = arg;
+        } else if (0 == strcasecmp(ARG_ACT_ENCRYPT, arg)) {
             action = arg;
         } else if (0 == strcasecmp(ARG_HELP, arg)) {
             usage(progname);
