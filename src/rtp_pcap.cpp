@@ -1214,6 +1214,12 @@ int main(int argc, char *argv[]) {
     srtp_args.force = false;
     srtp_args.debug = false;
 
+    // be friendly when no args are provided
+    if (1 == argc) {
+        usage(progname);
+        return 0;
+    }
+
     // parse the arguments
     for (i = 1; i < argc; i++) {
         char *arg = argv[i];
@@ -1268,7 +1274,7 @@ int main(int argc, char *argv[]) {
             action = arg;
         } else if (0 == strcasecmp(ARG_ACT_ENCRYPT, arg)) {
             action = arg;
-        } else if (0 == strcasecmp(ARG_HELP, arg)) {
+        } else if (0 == strcasecmp(ARG_HELP, arg) || 0 == strcasecmp("help", arg)) {
             usage(progname);
             return 0;
         } else {
