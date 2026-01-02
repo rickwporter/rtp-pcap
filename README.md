@@ -70,11 +70,14 @@ $
 
 Here's a quick example of decrypting an encrypted SRTP stream:
 ```shell
+#
 # Look at the encrypted stream
 $ ./rtp-pcap details --file examples/marseillaise-srtp.pcap 
      1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=170
      2-11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
  11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=11887, Time=1901920, payload bytes=170
+
+#
 # Decrypt the stream to a new file
 $ ./rtp-pcap decrypt --file examples/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --output decrypted.pcap
 
@@ -83,6 +86,8 @@ rtp-pcap: decrypt results
     AES-CM-128-SHA1-80bit key[30]=69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473
     srtp failures=0
     wrote 11888 packets to decrypted.pcap
+
+#
 # Look at the decrypted stream
 $ ./rtp-pcap details --file decrypted.pcap 
      1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=160
