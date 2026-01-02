@@ -13,6 +13,7 @@
 
 #include <pcap/pcap.h>
 
+#include "base64.h"
 #include "hexutils.h"
 #include "ip_hdrs.h"
 #include "rtp_pcap.h"
@@ -66,7 +67,7 @@ using namespace std;
 #define AFMT_TIME "<none|previous|capture|timeofday|date>"
 #define AFMT_ODD ""
 #define AFMT_ALG "<aes128-sha1-32|aes128-sha1-80>"
-#define AFMT_KEY "<hexstring>"
+#define AFMT_KEY "<hex|base64>"
 #define AFMT_OUTPUT "<filename>"
 #define AFMT_FORCE ""
 #define AFMT_DEBUG ""
@@ -979,6 +980,27 @@ static inline const char *rtp_pcap_get_srtp_error_string(srtp_err_status_t statu
     return "unknown";
 }
 
+bool isxstring(const char *input) {
+    for (const char *i = input; *i != 0; i++) {
+        if (!isxdigit(*i)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int parse_srtp_key(unsigned char *output, const char *input) {
+    if (isxstring(input)) {
+        return hexString2Binary(output, input);
+    }
+
+    size_t out_len = 0;
+    unsigned char *decoded = base64_decode((const unsigned char *)input, strlen(input), &out_len);
+    memcpy(output, decoded, out_len);
+    return out_len;
+}
+
 void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, rtp_pcap_srtp_args_t *args) {
     struct stat mystat;
     pcap_t *output;
@@ -1017,7 +1039,7 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
 
     // initialize the master key from the hex string
     memset(master_key, 0, sizeof(master_key));
-    key_length = hexString2Binary(master_key, args->key.c_str());
+    key_length = parse_srtp_key(master_key, args->key.c_str());
     if (key_length <= 0 || key_length > 32) {
         fprintf(stdout, "\n%s: invalid key length (%u) for '%s'!\n", progname, key_length, args->key.c_str());
         return;

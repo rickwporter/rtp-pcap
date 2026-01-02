@@ -19,6 +19,7 @@ SEPARATOR           := "****************************"
 APP                 := rtp-pcap
 
 CSRCS               := hexutils.c
+CSRCS               += base64.c
 CPPSRCS             := rtp_pcap.cpp
 
 COBJS      = $(patsubst %.c,$(OBJ_DIR)/%.o,$(CSRCS))

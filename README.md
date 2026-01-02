@@ -17,6 +17,8 @@ rtp-pcap usage:
           list : List all RTP streams
        summary : Summarize the RTP stream
        details : Provide RTP packet details
+       encrypt : Encrypt single RTP stream to another PCAP
+       decrypt : Decrypt single RTP stream to another PCAP
 
   list arguments      
       --odd           : Include odd # ports in list (default only considers even)
@@ -36,6 +38,14 @@ rtp-pcap usage:
       --index <pcap|stream>: Index type (default is stream)
       --time  <none|previous|capture|timeofday|date>: Time display format (default=none)
       --dtmf  <num>   : RTP payload type for DTMF decodes (default=101)
+
+  SRTP encrypt/decrypt arguments
+      --alg   <aes128-sha1-32|aes128-sha1-80>: Cryptographic algorithm suite (default=aes128-sha1-32)
+      --key   <hex|base64>: Master key in hexidecimal format
+      --output <filename>: Output filename (default=output.pcap)
+      --force         : Overwrite existing output file
+      --debug         : Turn on libSRTP debug
+
 $
 ```
 
@@ -56,8 +66,33 @@ $ ./rtp-pcap details --file examples/sip-rtp-g729a.pcap --port 6000
      7-430  Payload type=g729(18), SSRC=0x044559A1, Seq=61832-62254, Time=160 samples/pkt
    430  Payload type=g729(18), SSRC=0x044559A1, Seq=62255, Time=68000, payload bytes=20
 $ 
-
 ```
+
+Here's a quick example of decrypting an encrypted SRTP stream:
+```shell
+# Look at the encrypted stream
+$ ./rtp-pcap details --file examples/marseillaise-srtp.pcap 
+     1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=170
+     2-11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
+ 11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=11887, Time=1901920, payload bytes=170
+# Decrypt the stream to a new file
+$ ./rtp-pcap decrypt --file examples/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --output decrypted.pcap
+
+
+rtp-pcap: decrypt results
+    AES-CM-128-SHA1-80bit key[30]=69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473
+    srtp failures=0
+    wrote 11888 packets to decrypted.pcap
+# Look at the decrypted stream
+$ ./rtp-pcap details --file decrypted.pcap 
+     1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=160
+     2-11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
+ 11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=11887, Time=1901920, payload bytes=160
+$ 
+```
+
+The payload lengths in the above example can be seen to have shrunk by 10 bytes. If you open the `decrypted.pcap`, you can see the PCMA voice data is considerably less "random" than the original.
+
 
 ## Development
 
