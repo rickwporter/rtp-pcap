@@ -1001,6 +1001,11 @@ int parse_srtp_key(unsigned char *output, const char *input) {
     return out_len;
 }
 
+void srtp_log_print(srtp_log_level_t level, const char *msg, void *data) {
+    // Simple handler to print logs to console
+    printf("SRTP-LOG [%d]: %s\n", level, msg);
+}
+
 void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, rtp_pcap_srtp_args_t *args) {
     struct stat mystat;
     pcap_t *output;
@@ -1061,6 +1066,8 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
         fprintf(stdout, "\n%s: failed to initialize srtp: %d!\n", progname, srtp_status);
         return;
     }
+
+    srtp_install_log_handler(srtp_log_print, NULL);
 
     // turn on debug before creating/initializing the contexts, so those operations are visible
     if (args->debug) {
