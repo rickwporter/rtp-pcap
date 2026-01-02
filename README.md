@@ -20,10 +20,6 @@ rtp-pcap usage:
        encrypt : Encrypt single RTP stream to another PCAP
        decrypt : Decrypt single RTP stream to another PCAP
 
-  list arguments      
-      --odd           : Include odd # ports in list (default only considers even)
-      --all           : Print all UDP packets (not just suspected RTP)
-
   Common arguments    
       --file  <file>  : PCAP file
       --filter <dst|src>: Flag to filter on source/destination IP/UDP (default dst)
@@ -31,6 +27,10 @@ rtp-pcap usage:
       --port  <num>   : Source/destination UDP port
       --rtpmap <num=string[:num=string[...]]>: RTP payload type to string values
       --help          : This message
+
+  list arguments      
+      --odd           : Include odd # ports in list (default only considers even)
+      --all           : Print all UDP packets (not just suspected RTP)
 
   details arguments   
       --all           : Print all packets in stream

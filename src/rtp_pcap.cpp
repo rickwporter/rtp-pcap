@@ -110,10 +110,6 @@ void usage(const char *progname) {
     fprintf(stdout, ACTION_FMT, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP");
     fprintf(stdout, ACTION_FMT, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP");
     fprintf(stdout, "\n");
-    fprintf(stdout, SECTION_FMT, "list arguments");
-    fprintf(stdout, HELP_FMT, ARG_ODD, AFMT_ODD, "Include odd # ports in list (default only considers even)");
-    fprintf(stdout, HELP_FMT, ARG_ALL, AFMT_ALL, "Print all UDP packets (not just suspected RTP)");
-    fprintf(stdout, "\n");
     fprintf(stdout, SECTION_FMT, "Common arguments");
     fprintf(stdout, HELP_FMT, ARG_FILE, AFMT_FILE, "PCAP file");
     fprintf(stdout, HELP_FMT, ARG_FILTER, AFMT_FILTER, "Flag to filter on source/destination IP/UDP (default dst)");
@@ -121,6 +117,10 @@ void usage(const char *progname) {
     fprintf(stdout, HELP_FMT, ARG_PORT, AFMT_PORT, "Source/destination UDP port");
     fprintf(stdout, HELP_FMT, ARG_MAP, AFMT_MAP, "RTP payload type to string values");
     fprintf(stdout, HELP_FMT, ARG_HELP, AFMT_HELP, "This message");
+    fprintf(stdout, "\n");
+    fprintf(stdout, SECTION_FMT, "list arguments");
+    fprintf(stdout, HELP_FMT, ARG_ODD, AFMT_ODD, "Include odd # ports in list (default only considers even)");
+    fprintf(stdout, HELP_FMT, ARG_ALL, AFMT_ALL, "Print all UDP packets (not just suspected RTP)");
     fprintf(stdout, "\n");
     fprintf(stdout, SECTION_FMT, "details arguments");
     fprintf(stdout, HELP_FMT, ARG_ALL, AFMT_ALL, "Print all packets in stream");
