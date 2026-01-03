@@ -50,6 +50,9 @@ clean: app-clean ## Cleanup application files
 format: ## Perform linting of source files
 	clang-format -Werror -i src/*
 
+uncommitted: ## Check for uncommitted changes
+	make -f uncommitted.mk check
+
 ###############################
 ##@ Build
 $(OBJ_DIR):
