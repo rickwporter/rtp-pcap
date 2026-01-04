@@ -425,6 +425,8 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
     }
 }
 
+long milliseconds(struct timeval *tv) { return long(tv->tv_usec / 1000); }
+
 void rtp_pcap_details_time_display(
     time_display_t time_type, char *time_display, const size_t display_size, char *time_dspace, const size_t space_size,
     const struct timeval *pkttime, const struct timeval *lastpkt, const struct timeval *firstpkt
@@ -446,7 +448,7 @@ void rtp_pcap_details_time_display(
 
         nowtm = localtime(&nowtime);
         strftime(tmbuf, sizeof(tmbuf), "%H:%M:%S", nowtm);
-        snprintf(time_display, display_size, "%s.%03d", tmbuf, tv.tv_usec / 1000);
+        snprintf(time_display, display_size, "%s.%03ld", tmbuf, milliseconds(&tv));
         snprintf(time_dspace, space_size, "         ");
     } else if (time_type == tdisp_date) {
         struct timeval tv = *pkttime;
@@ -456,7 +458,7 @@ void rtp_pcap_details_time_display(
 
         nowtm = localtime(&nowtime);
         strftime(tmbuf, sizeof(tmbuf), "%Y-%m-%d %H:%M:%S", nowtm);
-        snprintf(time_display, display_size, "%s.%03d", tmbuf, tv.tv_usec / 1000);
+        snprintf(time_display, display_size, "%s.%03ld", tmbuf, milliseconds(&tv));
         snprintf(time_dspace, space_size, "                    ");
     } else {
         time_display[0] = '\0';
