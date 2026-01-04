@@ -53,6 +53,8 @@ format: ## Perform linting of source files
 uncommitted: ## Check for uncommitted changes
 	make -f uncommitted.mk check
 
+check-format: format uncommitted ## Formats source and looks for changes
+
 ###############################
 ##@ Build
 $(OBJ_DIR):
@@ -75,3 +77,6 @@ app: $(APP) ## Build the application
 
 app-clean: ## Cleanup the application
 	rm -rf $(OBJ_DIR) $(APP)
+
+test: ## Run test script
+	./test.sh
