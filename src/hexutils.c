@@ -13,6 +13,7 @@ const char *hexdump(void *input, int nBytes) { return hexdump_r(input, nBytes, g
 const char *hexdump_r(void *in, int nBytes, char *buffer, int bufsize) {
     char hexOut[80];
     char alphaOut[80];
+    char line[256];
     int32_t nHex;   // Indexes the hex digits in "output"
     int32_t nAlpha; // Indexes the alpha characters in "output"
     int32_t i;      // Temporary storage
@@ -57,8 +58,8 @@ const char *hexdump_r(void *in, int nBytes, char *buffer, int bufsize) {
             }
         }
 
-        // NOTE: this is "safe" because we already insured the buffer is big enough
-        snprintf(buffer, bufsize, "%s%08x: %-36s  %s\n", buffer, lineOffset, hexOut, alphaOut);
+        snprintf(line, sizeof(line), "%08x: %-36s  %s\n", lineOffset, hexOut, alphaOut);
+        strcat(buffer, line);
 
         lineOffset += 16;
     }
