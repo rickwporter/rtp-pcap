@@ -1209,10 +1209,6 @@ int main(int argc, char *argv[]) {
 
     // initialize some stuff
     memset(&filter, 0, sizeof(filter));
-    memset(&detail_args, 0, sizeof(detail_args));
-    memset(&srtp_args, 0, sizeof(srtp_args));
-
-    // set defaults
     filter.flags = FILTER_FLAG_DST_FILTER;
     rtp_pcap_rtpmap_init(rtpmap);
     detail_args.analyse = true;
