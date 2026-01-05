@@ -28,9 +28,8 @@ using namespace std;
 // Macros/constants
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-// #define DEBUG_PRINT(fmt, args...) fprintf(stderr, "%s: " fmt, __func__,
-// ##args)
-#define DEBUG_PRINT(fmt, args...)
+#define DEBUG_PRINT(fmt, args...) fprintf(stderr, "%s: " fmt, __func__, ##args)
+// #define DEBUG_PRINT(fmt, args...)
 
 #define ARG_FILE "--file"
 #define ARG_ADDR "--ip"
