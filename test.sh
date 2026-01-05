@@ -77,6 +77,7 @@ L16_DETAILS="     6  Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160,
   1247-1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
+set -x
 output=$($APP details --file $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 2>&1)
 result=$?
 
