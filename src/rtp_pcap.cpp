@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <arpa/inet.h> // for ntohs()
+#include <ctime>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <stdio.h>
@@ -27,8 +28,7 @@ using namespace std;
 // Macros/constants
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-// #define DEBUG_PRINT(fmt, args...) fprintf(stderr, "%s: " fmt, __func__,
-// ##args)
+// #define DEBUG_PRINT(fmt, args...) fprintf(stderr, "%s: " fmt, __func__, ##args)
 #define DEBUG_PRINT(fmt, args...)
 
 #define ARG_FILE "--file"
@@ -242,7 +242,7 @@ index_display_t rtp_pcap_index_display_parse(const char *arg) {
     return idisp_stream;
 }
 
-void rtp_pcap_iph_byteswap(struct iphdr *iph) {
+void rtp_pcap_iph_byteswap(iphdr_t *iph) {
     iph->tot_len = ntohs(iph->tot_len);
     iph->id = ntohs(iph->id);
     iph->frag_off = ntohs(iph->frag_off);
@@ -251,7 +251,7 @@ void rtp_pcap_iph_byteswap(struct iphdr *iph) {
     iph->daddr = ntohl(iph->daddr);
 }
 
-void rtp_pcap_udph_byteswap(struct udphdr *udph) {
+void rtp_pcap_udph_byteswap(udphdr_t *udph) {
     udph->source = ntohs(udph->source);
     udph->dest = ntohs(udph->dest);
     udph->len = ntohs(udph->len);
@@ -262,8 +262,8 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
     uint8_t data_buffer[PKT_BUF_BYTES];
     const unsigned char *pcap_data;
     struct pcap_pkthdr *pcap_header_ptr = NULL;
-    struct iphdr *iph;
-    struct udphdr *udph;
+    iphdr_t *iph;
+    udphdr_t *udph;
     uint16_t eth_type;
     uint16_t ip_offset; // typical ethernet
 
@@ -289,7 +289,7 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
             continue;
         }
 
-        iph = (struct iphdr *)((unsigned long)data_buffer + ip_offset);
+        iph = (iphdr_t *)((unsigned long)data_buffer + ip_offset);
         rtp_pcap_iph_byteswap(iph);
 
         // ignore non-UDP packets
@@ -321,7 +321,7 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
             continue;
         }
 
-        udph = (struct udphdr *)((unsigned long)iph + (iph->ihl << 2));
+        udph = (udphdr_t *)((unsigned long)iph + (iph->ihl << 2));
         rtp_pcap_udph_byteswap(udph);
 
         // if a different destination UDP port, ignore it
@@ -350,8 +350,8 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
         // we've got a match, copy it to the packet
         pkt->pcap_hdr = *pcap_header_ptr;
         memcpy(pkt->buffer, data_buffer, sizeof(pkt->buffer));
-        pkt->iph = (struct iphdr *)((unsigned long)pkt->buffer + (unsigned long)iph - (unsigned long)data_buffer);
-        pkt->udph = (struct udphdr *)((unsigned long)pkt->buffer + (unsigned long)udph - (unsigned long)data_buffer);
+        pkt->iph = (iphdr_t *)((unsigned long)pkt->buffer + (unsigned long)iph - (unsigned long)data_buffer);
+        pkt->udph = (udphdr_t *)((unsigned long)pkt->buffer + (unsigned long)udph - (unsigned long)data_buffer);
         pkt->rtph = (rtphdr_t *)(pkt->udph + 1);
         return 0;
     } // while
@@ -425,6 +425,8 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
     }
 }
 
+long milliseconds(struct timeval *tv) { return long(tv->tv_usec / 1000); }
+
 void rtp_pcap_details_time_display(
     time_display_t time_type, char *time_display, const size_t display_size, char *time_dspace, const size_t space_size,
     const struct timeval *pkttime, const struct timeval *lastpkt, const struct timeval *firstpkt
@@ -446,7 +448,7 @@ void rtp_pcap_details_time_display(
 
         nowtm = localtime(&nowtime);
         strftime(tmbuf, sizeof(tmbuf), "%H:%M:%S", nowtm);
-        snprintf(time_display, display_size, "%s.%03d", tmbuf, tv.tv_usec / 1000);
+        snprintf(time_display, display_size, "%s.%03ld", tmbuf, milliseconds(&tv));
         snprintf(time_dspace, space_size, "         ");
     } else if (time_type == tdisp_date) {
         struct timeval tv = *pkttime;
@@ -456,7 +458,7 @@ void rtp_pcap_details_time_display(
 
         nowtm = localtime(&nowtime);
         strftime(tmbuf, sizeof(tmbuf), "%Y-%m-%d %H:%M:%S", nowtm);
-        snprintf(time_display, display_size, "%s.%03d", tmbuf, tv.tv_usec / 1000);
+        snprintf(time_display, display_size, "%s.%03ld", tmbuf, milliseconds(&tv));
         snprintf(time_dspace, space_size, "                    ");
     } else {
         time_display[0] = '\0';
@@ -1128,7 +1130,7 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
         }
 
         stream_pkt_count++;
-        rtp_length = orig_length = packet.udph->len - sizeof(struct udphdr);
+        rtp_length = orig_length = packet.udph->len - sizeof(udphdr_t);
 
         if (args->op == cryptop_encrypt) {
             // TODO: distinguish RTP/RTCP
@@ -1213,6 +1215,7 @@ int main(int argc, char *argv[]) {
     detail_args.summarize = true;
     detail_args.dtmf_decode = RTP_PTYPE_DTMF_DEFAULT;
     detail_args.time_type = tdisp_none;
+    detail_args.index_type = idisp_pcap;
     list_args.odd = false;
     list_args.all_udp = false;
     srtp_args.op = cryptop_none;

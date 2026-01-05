@@ -3,6 +3,7 @@
 #include <srtp2/srtp.h>
 #include <stdint.h>
 
+#include "ip_hdrs.h"
 #include "rtp_types.h"
 
 using namespace std;
@@ -33,8 +34,8 @@ typedef map<uint32_t, port_counts_t> address_counts_t;
 typedef struct {
     struct pcap_pkthdr pcap_hdr;
     uint8_t buffer[PKT_BUF_BYTES];
-    struct iphdr *iph;
-    struct udphdr *udph;
+    iphdr_t *iph;
+    udphdr_t *udph;
     rtphdr_t *rtph;
 } rtp_pcap_pkt_t;
 

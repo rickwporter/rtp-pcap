@@ -36,7 +36,7 @@ HELP_START="  rtp-pcap <action> --file <file> [arguments]
        decrypt : Decrypt single RTP stream to another PCAP
 "
 
-output=$($APP --help)
+output=$($APP --help 2>&1)
 result=$?
 
 check_result "Basic help" 0 "$HELP_START" $result "$output"
@@ -53,7 +53,7 @@ L16_LIST="rtp-pcap found (1673 total packet in capture):
     Payload types (1):
       unknown (99) : 1641"
 
-output=$($APP list --file $EXAMPLES/sip-rtp-l16.pcap)
+output=$($APP list --file $EXAMPLES/sip-rtp-l16.pcap 2>&1)
 result=$?
 
 check_result "L16 list" 0 "$L16_LIST" $result "$output"
@@ -77,7 +77,7 @@ L16_DETAILS="     6  Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160,
   1247-1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
-output=$($APP details --file $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16)
+output=$($APP details --file $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 2>&1)
 result=$?
 
 check_result "L16 details" 0 "$L16_DETAILS" $result "$output"
@@ -90,7 +90,7 @@ G729_ALL="     6      0 Payload type=g729(18), SSRC=0x044559A1, Seq=61831, Time=
      8     20 Payload type=g729(18), SSRC=0x044559A1, Seq=61833, Time=480, payload bytes=20
      9     19 Payload type=g729(18), SSRC=0x044559A1, Seq=61834, Time=640, payload bytes=20"
 
-output=$($APP details --file $EXAMPLES/sip-rtp-g729a.pcap --port 6000 --all --time previous)
+output=$($APP details --file $EXAMPLES/sip-rtp-g729a.pcap --port 6000 --all --time previous 2>&1)
 result=$?
 
 check_result "G729 all" 0 "$G729_ALL" $result "$output"
@@ -102,7 +102,7 @@ SRTP_DECRYPT="rtp-pcap: decrypt results
     srtp failures=0
     wrote 11888 packets to output.pcap"
 
-output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --force)
+output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --force 2>&1)
 result=$?
 
 check_result "SRTP decrypt" 0 "$SRTP_DECRYPT" $result "$output"

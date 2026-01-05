@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-struct iphdr {
+typedef struct {
     uint8_t ihl:4, version:4;
     uint8_t tos;
     uint16_t tot_len;
@@ -20,11 +20,11 @@ struct iphdr {
     /* Options are not part of the basic struct and follow it in the packet
      * buffer
      */
-};
+} iphdr_t;
 
-struct udphdr {
+typedef struct {
     uint16_t source;
     uint16_t dest;
     uint16_t len;
     uint16_t check;
-};
+} udphdr_t;
