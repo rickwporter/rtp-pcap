@@ -95,6 +95,23 @@ result=$?
 
 check_result "G729 all" 0 "$G729_ALL" $result "$output"
 
+
+#################################################
+# iLBC summary
+ILBC_SUMMARY="rtp-pcap summary:
+  IP destination: 10.0.2.20:6000
+  RTP 284 packets (292 in capture)
+  SSRCs (1):
+    0x043eefa7 : 284
+  Payload types (1):
+    unknown (99) : 284"
+
+output=$($APP summary --file $EXAMPLES/sip-rtp-ilbc.pcap 2>&1)
+result=$?
+
+check_result "iLBC summary" 0 "$ILBC_SUMMARY" $result "$output"
+
+
 #################################################
 # SRTP decrypt
 SRTP_DECRYPT="rtp-pcap: decrypt results

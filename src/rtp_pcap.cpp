@@ -380,6 +380,11 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
             break;
         }
 
+        rtph = packet.rtph;
+        if (0 == stream_pkt_count && RFC_1889_VERSION != rtp_hdr_get_version(rtph)) {
+            continue;
+        }
+
         if (stream_pkt_count == 0) {
             if (filter->flags & FILTER_FLAG_DST_FILTER) {
                 filter->flags |= FILTER_FLAG_DADDR_SET | FILTER_FLAG_DPORT_SET;
@@ -393,13 +398,6 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
         }
 
         stream_pkt_count++;
-
-        rtph = packet.rtph;
-        if (RFC_1889_VERSION != rtp_hdr_get_version(rtph)) {
-            fprintf(stderr, "%s: packet is not valid RTP (ver=%u)\n", progname, rtp_hdr_get_version(rtph));
-            continue;
-        }
-
         ssrcs[rtp_hdr_get_ssrc(rtph)] += 1;
         codecs[rtp_hdr_get_ptype(rtph)] += 1;
     } while (1);
