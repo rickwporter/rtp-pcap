@@ -7,14 +7,29 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  build-x86:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
     - name: dependencies
       run: sudo apt install libsrtp2-dev libpcap-dev
+    - name: uname
+      run: uname -a
+    - name: build
+      run: make app
+    - name: test
+      run: make test
+
+  build-arm:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: dependencies
+      run: sudo apt install libsrtp2-dev libpcap-dev
+    - name: uname
+      run: uname -a
     - name: build
       run: make app
     - name: test
