@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: dependencies
-      run: sudo apt install clang-format
+      run: sudo apt install clang-format-21
     - name: version
       run: clang-format --version
     - name: lint
