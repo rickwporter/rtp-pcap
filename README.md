@@ -72,6 +72,7 @@ Here's a quick example of decrypting an encrypted SRTP stream:
 ```shell
 #
 # Look at the encrypted stream
+#
 $ ./rtp-pcap details --file examples/marseillaise-srtp.pcap 
      1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=170
      2-11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
@@ -79,6 +80,7 @@ $ ./rtp-pcap details --file examples/marseillaise-srtp.pcap
 
 #
 # Decrypt the stream to a new file
+#
 $ ./rtp-pcap decrypt --file examples/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --output decrypted.pcap
 
 
@@ -89,6 +91,7 @@ rtp-pcap: decrypt results
 
 #
 # Look at the decrypted stream
+#
 $ ./rtp-pcap details --file decrypted.pcap 
      1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=160
      2-11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
@@ -96,7 +99,7 @@ $ ./rtp-pcap details --file decrypted.pcap
 $ 
 ```
 
-The payload lengths in the above example can be seen to have shrunk by 10 bytes. If you open the `decrypted.pcap`, you can see the PCMA voice data is considerably less "random" than the original.
+The payload lengths in the above example can be seen to have shrunk by 10 bytes per packet (which is the 80-bit authentication trailer). If you open the `decrypted.pcap`, you can see the PCMA voice data is considerably less "random" than the original.
 
 
 ## Development
