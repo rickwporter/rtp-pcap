@@ -1006,6 +1006,12 @@ void srtp_log_print(srtp_log_level_t level, const char *msg, void *data) {
     printf("SRTP-LOG [%d]: %s\n", level, msg);
 }
 
+void error_inc(SrtpErrorMap &map, srtp_err_status_t error, int inc_value = 1) {
+    SrtpErrorMap::const_iterator it = map.find(error);
+    int count = (it == map.end() ? 0 : it->second);
+    map[error] = count + inc_value;
+}
+
 void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, rtp_pcap_srtp_args_t *args) {
     struct stat mystat;
     pcap_t *output;
@@ -1019,6 +1025,7 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
     srtp_err_status_t srtp_status;
     srtp_policy_t srtp_policy;
     srtp_t srtp_sess;
+    SrtpErrorMap errors;
     int orig_length;
     int rtp_length;
     int delta_length;
@@ -1139,7 +1146,8 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
         }
 
         if (srtp_status != srtp_err_status_ok) {
-            fprintf(
+            error_inc(errors, srtp_status);
+            DEBUG_PRINT(
                 stdout,
                 "\n%s of packet[%d] failed: %s (%d)",
                 rtp_pcap_cryptop_string(args->op),
@@ -1173,7 +1181,14 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
     fprintf(stdout, "\n");
     fprintf(stdout, "\n%s: %s results", progname, rtp_pcap_cryptop_string(args->op));
     fprintf(stdout, "\n    %s key[%d]=%s", rtp_pcap_algorithm_string(args->alg), key_length, bin2hexString(master_key, key_length));
-    fprintf(stdout, "\n    srtp failures=%u", srtp_fail_count);
+    if (errors.size()) {
+        fprintf(stdout, "\n    %u srtp failures:", srtp_fail_count);
+        for (SrtpErrorMap::const_iterator it = errors.begin(); it != errors.end(); it++) {
+            fprintf(stdout, "\n        %-20s: %-8d", rtp_pcap_get_srtp_error_string(it->first), it->second);
+        }
+    } else {
+        fprintf(stdout, "\n    No srtp failures");
+    }
     fprintf(stdout, "\n    wrote %u packets to %s", write_pkt_count, args->outfile.c_str());
     fprintf(stdout, "\n");
 
