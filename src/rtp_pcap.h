@@ -85,3 +85,5 @@ typedef struct {
     std::string key;
     std::string outfile;
 } rtp_pcap_srtp_args_t;
+
+typedef map<srtp_err_status_t, int> SrtpErrorMap;

@@ -3,12 +3,26 @@ APP=./rtp-pcap
 EXAMPLES=examples
 TEST_RESULT=0
 
+check_substring() {
+    local description=$1
+    local expected_output=$2
+    local actual_output=$3
+    
+    if [[ "$actual_output" == *"$expected_output"* ]]; then
+        echo "PASS: $description"
+    else
+        echo "FAIL: $description does not contain expected output"
+        echo "actual:\n$actual_output"
+        TEST_RESULT+=1
+    fi
+}
+
 check_result() {
-    description=$1
-    expected_result=$2
-    expected_output=$3
-    actual_result=$4
-    actual_output=$5
+    local description=$1
+    local expected_result=$2
+    local expected_output=$3
+    local actual_result=$4
+    local actual_output=$5
     
     if [[ $expected_result -ne $actual_result ]]; then
         echo "FAIL: $description result actual($actual_result) not equal to expected($expected_result)"
@@ -19,7 +33,7 @@ check_result() {
         echo "PASS: $description"
     else
         echo "FAIL: $description does not contain expected output"
-        echo "actual: $actuat_output"
+        echo "actual:\n$actual_output"
         TEST_RESULT+=1
     fi
 }
@@ -113,16 +127,45 @@ check_result "iLBC summary" 0 "$ILBC_SUMMARY" $result "$output"
 
 
 #################################################
-# SRTP decrypt
+# SRTP decrypt (base64)
 SRTP_DECRYPT="rtp-pcap: decrypt results
     AES-CM-128-SHA1-80bit key[30]=69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473
-    srtp failures=0
+    No srtp failures
     wrote 11888 packets to output.pcap"
 
 output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --force 2>&1)
 result=$?
 
-check_result "SRTP decrypt" 0 "$SRTP_DECRYPT" $result "$output"
+check_result "SRTP decrypt (base64)" 0 "$SRTP_DECRYPT" $result "$output"
+
+#################################################
+# SRTP decrypt (hex)
+SRTP_DECRYPT_SUMMARY="rtp-pcap: decrypt results
+    AES-CM-128-SHA1-80bit key[30]=69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473
+    No srtp failures
+    wrote 11888 packets to output.pcap"
+SRTP_DECRYPT_DEBUG="SRTP-LOG [3]: srtp: function srtp_unprotect
+SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f
+SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f"
+
+output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --alg aes128-sha1-80 --debug --force 2>&1)
+result=$?
+
+check_result "SRTP decrypt (hex)" 0 "$SRTP_DECRYPT_SUMMARY" $result "$output"
+check_substring "SRTP decrypt debug" "$SRTP_DECRYPT_DEBUG" "$output"
+
+#################################################
+# SRTP decrypt (bad alg)
+SRTP_DECRYPT="rtp-pcap: decrypt results
+    AES-CM-128-SHA1-32bit key[30]=69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473
+    11888 srtp failures:
+        authentication failure: 11888   
+    wrote 0 packets to output.pcap"
+
+output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --force 2>&1)
+result=$?
+
+check_result "SRTP decrypt (bad)" 0 "$SRTP_DECRYPT" $result "$output"
 
 #################################################
 # Final
