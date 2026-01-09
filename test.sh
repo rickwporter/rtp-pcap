@@ -5,35 +5,25 @@ TEST_RESULT=0
 
 check_substring() {
     local description=$1
-    local expected_output=$2
-    local actual_output=$3
+    local expected=$2
+    local actual=$3
     
-    if [[ "$actual_output" == *"$expected_output"* ]]; then
+    if [[ "$actual" == *"$expected"* ]]; then
         echo "PASS: $description"
     else
         echo "FAIL: $description does not contain expected output"
-        echo "actual:\n$actual_output"
+        echo "actual:\n$actual"
         TEST_RESULT+=1
     fi
 }
 
 check_result() {
     local description=$1
-    local expected_result=$2
-    local expected_output=$3
-    local actual_result=$4
-    local actual_output=$5
+    local expected=$2
+    local actual=$3
     
-    if [[ $expected_result -ne $actual_result ]]; then
-        echo "FAIL: $description result actual($actual_result) not equal to expected($expected_result)"
-        TEST_RESULT+=1
-    fi
-
-    if [[ "$actual_output" == *"$expected_output"* ]]; then
-        echo "PASS: $description"
-    else
-        echo "FAIL: $description does not contain expected output"
-        echo "actual:\n$actual_output"
+    if [[ $expected -ne $actual ]]; then
+        echo "FAIL: $description result actual($actual) not equal to expected($expected)"
         TEST_RESULT+=1
     fi
 }
@@ -53,7 +43,9 @@ HELP_START="  rtp-pcap <action> --file <file> [arguments]
 output=$($APP --help 2>&1)
 result=$?
 
-check_result "Basic help" 0 "$HELP_START" $result "$output"
+check_result "Basic help" 0 $result
+check_substring "Basic help" "$HELP_START" "$output"
+
 
 #################################################
 # L16 list
@@ -70,7 +62,8 @@ L16_LIST="rtp-pcap found (1673 total packet in capture):
 output=$($APP list --file $EXAMPLES/sip-rtp-l16.pcap 2>&1)
 result=$?
 
-check_result "L16 list" 0 "$L16_LIST" $result "$output"
+check_result "L16 list" 0 $result
+check_substring "L16 list" "$L16_LIST" "$output"
 
 
 #################################################
@@ -94,7 +87,8 @@ L16_DETAILS="     6  Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160,
 output=$($APP details --file $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 2>&1)
 result=$?
 
-check_result "L16 details" 0 "$L16_DETAILS" $result "$output"
+check_result "L16 details" 0 $result
+check_substring "L16 details" "$L16_DETAILS" "$output"
 
 
 #################################################
@@ -107,7 +101,8 @@ G729_ALL="     6      0 Payload type=g729(18), SSRC=0x044559A1, Seq=61831, Time=
 output=$($APP details --file $EXAMPLES/sip-rtp-g729a.pcap --port 6000 --all --time previous 2>&1)
 result=$?
 
-check_result "G729 all" 0 "$G729_ALL" $result "$output"
+check_result "G729 all" 0 $result
+check_substring "G729 all" "$G729_ALL" "$output"
 
 
 #################################################
@@ -123,7 +118,8 @@ ILBC_SUMMARY="rtp-pcap summary:
 output=$($APP summary --file $EXAMPLES/sip-rtp-ilbc.pcap 2>&1)
 result=$?
 
-check_result "iLBC summary" 0 "$ILBC_SUMMARY" $result "$output"
+check_result "iLBC summary" 0 $result
+check_substring "iLBC summary" "$ILBC_SUMMARY" "$output"
 
 
 #################################################
@@ -136,7 +132,9 @@ SRTP_DECRYPT="rtp-pcap: decrypt results
 output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --force 2>&1)
 result=$?
 
-check_result "SRTP decrypt (base64)" 0 "$SRTP_DECRYPT" $result "$output"
+check_result "SRTP decrypt (base64)" 0 $result
+check_substring "SRTP decrypt (base64)" "$SRTP_DECRYPT" "$output"
+
 
 #################################################
 # SRTP decrypt (hex)
@@ -151,8 +149,10 @@ SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f"
 output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --alg aes128-sha1-80 --debug --force 2>&1)
 result=$?
 
-check_result "SRTP decrypt (hex)" 0 "$SRTP_DECRYPT_SUMMARY" $result "$output"
-check_substring "SRTP decrypt debug" "$SRTP_DECRYPT_DEBUG" "$output"
+check_result "SRTP decrypt (hex)" 0 $result
+check_substring "SRTP decrypt (hex) summary" "$SRTP_DECRYPT_SUMMARY" "$output"
+check_substring "SRTP decrypt (hex) debug" "$SRTP_DECRYPT_DEBUG" "$output"
+
 
 #################################################
 # SRTP decrypt (bad alg)
@@ -165,7 +165,9 @@ SRTP_DECRYPT="rtp-pcap: decrypt results
 output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --force 2>&1)
 result=$?
 
-check_result "SRTP decrypt (bad)" 0 "$SRTP_DECRYPT" $result "$output"
+check_result "SRTP decrypt (bad)" 0 $result
+check_substring "SRTP decrypt (bad)" "$SRTP_DECRYPT" "$output"
+
 
 #################################################
 # Final
