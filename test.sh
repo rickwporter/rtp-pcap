@@ -146,14 +146,7 @@ SRTP_DECRYPT_SUMMARY="rtp-pcap: decrypt results
     wrote 11888 packets to output.pcap"
 SRTP_DECRYPT_DEBUG="SRTP-LOG [3]: srtp: function srtp_unprotect
 SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f
-SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f
-SRTP-LOG [3]: aes icm: setting iv: 00000000deadbeef000000002e6f0000
-SRTP-LOG [3]: aes icm: set_counter: 92ab0d35533d47e31d8fd1ed911b0000
-SRTP-LOG [3]: srtp: computed auth tag:    26ad496d58c3f1595a9c
-SRTP-LOG [3]: srtp: packet auth tag:      26ad496d58c3f1595a9c
-SRTP-LOG [3]: aes icm: block index: 0
-SRTP-LOG [3]: aes icm: counter:    92ab0d35533d47e31d8fd1ed911b0000
-SRTP-LOG [3]: aes icm: ciphertext: 9beeac702be53c44e944763e77718d95"
+SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f"
 
 output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --alg aes128-sha1-80 --debug --force 2>&1)
 result=$?
