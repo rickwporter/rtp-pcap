@@ -364,6 +364,8 @@ int rtp_pcap_packet_get_rtp_payload_length(rtp_pcap_pkt_t *pkt) {
     return length - rtp_hdr_get_hdr_length(pkt->rtph);
 }
 
+bool is_next_rtp_sequence(rtphdr_t *last, rtphdr_t *curr) { return ((rtp_hdr_get_sequence(last) + 1) & 0xffff) == rtp_hdr_get_sequence(curr); }
+
 void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpmap, rtp_pcap_filter_t *filter) {
     map_count_t ssrcs;
     map_count_t codecs;
@@ -481,7 +483,7 @@ const char *rtp_pcap_details_analyze(
     } else if (rtp_hdr_get_ssrc(last_rtp) != rtp_hdr_get_ssrc(rtph)) {
         snprintf(output, out_size, "***** SSRC changed from %u to %u ******\n", rtp_hdr_get_ssrc(last_rtp), rtp_hdr_get_ssrc(rtph));
     } else if (rtp_hdr_get_ptype(last_rtp) != rtp_hdr_get_ptype(rtph)) {
-        if (rtp_hdr_get_sequence(last_rtp) + 1 == rtp_hdr_get_sequence(rtph))
+        if (is_next_rtp_sequence(last_rtp, rtph))
             snprintf(
                 output,
                 out_size,
@@ -504,7 +506,7 @@ const char *rtp_pcap_details_analyze(
                 rtp_hdr_get_ptype(rtph),
                 rtp_hdr_get_sequence(rtph)
             );
-    } else if (rtp_hdr_get_sequence(last_rtp) + 1 != rtp_hdr_get_sequence(rtph)) {
+    } else if (!is_next_rtp_sequence(last_rtp, rtph)) {
         int delta = rtp_hdr_get_sequence(rtph) - rtp_hdr_get_sequence(last_rtp);
 
         // attempt to classify the nature of the sequence number discontinuity?
@@ -625,7 +627,7 @@ const char *rtp_pcap_details_packet_summary(
         rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)),
         rtp_hdr_get_ptype(last_rtp),
         rtp_hdr_get_ssrc(last_rtp),
-        rtp_hdr_get_sequence(last_rtp) - n_suppressed + 1,
+        (rtp_hdr_get_sequence(last_rtp) - n_suppressed + 1) & 0xffff,
         rtp_hdr_get_sequence(last_rtp) - 1,
         payload_display
     );
@@ -724,7 +726,7 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
         // print the packets out in a tcpdump fashion, according to input (if
         // not suppressing or anything changed)
         if (!suppress || rtp_hdr_get_version(rtph) != RFC_1889_VERSION || rtp_hdr_get_marker(rtph) ||
-            rtp_hdr_get_ssrc(&last_rtp) != rtp_hdr_get_ssrc(rtph) || rtp_hdr_get_sequence(&last_rtp) + 1 != rtp_hdr_get_sequence(rtph) ||
+            rtp_hdr_get_ssrc(&last_rtp) != rtp_hdr_get_ssrc(rtph) || !is_next_rtp_sequence(&last_rtp, rtph) ||
             rtp_hdr_get_ptype(&last_rtp) != rtp_hdr_get_ptype(rtph) ||
             (samples_per_packet != 0 && rtp_hdr_get_timestamp(&last_rtp) + samples_per_packet != rtp_hdr_get_timestamp(rtph)) ||
             (rtp_hdr_get_ptype(rtph) == dtmf_decode && rtp_hdr_get_timestamp(rtph) != last_dtmf_time)) {
@@ -793,8 +795,7 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
             }
             // if samples per packet has not been calculated, make sure we use
             // consecutive packets
-            else if (samples_per_packet == 0 && RFC_1889_VERSION == rtp_hdr_get_version(&last_rtp) &&
-                     rtp_hdr_get_sequence(&last_rtp) + 1 == rtp_hdr_get_sequence(rtph)) {
+            else if (samples_per_packet == 0 && RFC_1889_VERSION == rtp_hdr_get_version(&last_rtp) && is_next_rtp_sequence(&last_rtp, rtph)) {
                 samples_per_packet = rtp_hdr_get_timestamp(rtph) - rtp_hdr_get_timestamp(&last_rtp);
             }
 

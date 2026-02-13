@@ -92,6 +92,25 @@ check_substring "L16 details" "$L16_DETAILS" "$output"
 
 
 #################################################
+# G726 details
+
+# NOTE: the sequence rollover in the first SSRC
+G726_DETAILS="***** SSRC changed from 71150055 to 71301759 ******
+  2171  Payload type=unknown(99), SSRC=0x043FFA7F, Seq=65433, Time=160, Mark, payload bytes=60
+  2172-2595  Payload type=unknown(99), SSRC=0x043FFA7F, Seq=65434-320, Time=160 samples/pkt
+  2595  Payload type=unknown(99), SSRC=0x043FFA7F, Seq=321, Time=68000, payload bytes=60
+***** SSRC changed from 71301759 to 71150072 ******
+  2604  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=11987, Time=160, Mark, payload bytes=80
+  2605-3028  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=11988-12410, Time=160 samples/pkt
+  3028  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=12411, Time=68000, payload bytes=80"
+
+output=$($APP details --file $EXAMPLES/sip-rtp-g726.pcap 2>&1)
+result=$?
+
+check_result "G726 details" 0 $result
+check_substring "G726 details" "$G726_DETAILS" "$output"
+
+#################################################
 # G729 all
 G729_ALL="     6      0 Payload type=g729(18), SSRC=0x044559A1, Seq=61831, Time=160, Mark, payload bytes=20
      7     19 Payload type=g729(18), SSRC=0x044559A1, Seq=61832, Time=320, payload bytes=20
