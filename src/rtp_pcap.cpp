@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <arpa/inet.h> // for ntohs()
+#include <cstdio>
 #include <ctime>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include <stdio.h>
 #include <stdlib.h> // for atoi()
 #include <string.h> // for memset()
 #include <string>
@@ -1148,7 +1148,6 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
         if (srtp_status != srtp_err_status_ok) {
             error_inc(errors, srtp_status);
             DEBUG_PRINT(
-                stdout,
                 "\n%s of packet[%d] failed: %s (%d)",
                 rtp_pcap_cryptop_string(args->op),
                 stream_pkt_count - 1,
