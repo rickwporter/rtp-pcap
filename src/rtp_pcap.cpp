@@ -1263,6 +1263,7 @@ int main(int argc, char *argv[]) {
             char *ptypestr = NEXT_ARG(i, argc, argv);
             if (ptypestr != NULL) {
                 detail_args.dtmf_decode = atoi(ptypestr);
+                rtpmap[detail_args.dtmf_decode] = "telephone-events";
             }
         } else if (0 == strcasecmp(ARG_TIME, arg)) {
             detail_args.time_type = rtp_pcap_time_display_parse(NEXT_ARG(i, argc, argv));
