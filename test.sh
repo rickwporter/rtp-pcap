@@ -189,5 +189,30 @@ check_substring "SRTP decrypt (bad)" "$SRTP_DECRYPT" "$output"
 
 
 #################################################
+# DTMF details
+DTMF_DETAILS="   439  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62726, Time=3931142841, payload bytes=240
+***** Codec type change from pcma(8) to telephone-events(96) ******
+   441  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62727, Time=3931143081, Mark, DTMF id=7, duration=0
+   443-449  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62728-62730, DTMF id=7
+   449  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62731, Time=3931143081, DTMF id=7, duration=960 (end)
+***** Codec type change from telephone-events(96) to pcma(8) ******
+   451  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62732, Time=3931144281, Mark, payload bytes=240
+   453-471  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62733-62741, Time=240 samples/pkt
+   471  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62742, Time=3931146681, payload bytes=240
+***** Codec type change from pcma(8) to telephone-events(96) ******
+   473  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62743, Time=3931146921, Mark, DTMF id=8, duration=0
+   475-481  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62744-62746, DTMF id=8
+   481  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62747, Time=3931146921, DTMF id=8, duration=960 (end)
+***** Codec type change from telephone-events(96) to pcma(8) ******
+   483  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62748, Time=3931148121, Mark, payload bytes=240"
+
+output=$($APP details --file $EXAMPLES/SIP_DTMF2.pcap --dtmf 96 --ip 192.168.105.110 2>&1)
+result=$?
+
+check_result "DTMF details" 0 $result
+check_substring "DTMF details" "$DTMF_DETAILS" "$output"
+
+
+#################################################
 # Final
 exit $TEST_RESULT
