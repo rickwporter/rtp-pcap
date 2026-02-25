@@ -77,6 +77,7 @@ using namespace std;
 #define ARG_ACT_LIST "list"
 #define ARG_ACT_ENCRYPT "encrypt"
 #define ARG_ACT_DECRYPT "decrypt"
+#define ARG_ACT_STATS "stats"
 
 #define SECTION_FMT "  %-20s\n"
 #define HELP_FMT "      %-7s %-8s: %s\n"
@@ -95,6 +96,9 @@ using namespace std;
 #define FILTER_FLAG_SPORT_SET (1 << 4)
 #define FILTER_FLAG_DPORT_SET (1 << 5)
 
+#define MSEC_PER_SEC 1000
+#define USEC_PER_SEC 1000000
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 // Declarations
@@ -107,6 +111,7 @@ void usage(const char *progname) {
     fprintf(stdout, ACTION_FMT, ARG_ACT_LIST, "List all RTP streams");
     fprintf(stdout, ACTION_FMT, ARG_ACT_SUMMARY, "Summarize the RTP stream");
     fprintf(stdout, ACTION_FMT, ARG_ACT_DETAILS, "Provide RTP packet details");
+    fprintf(stdout, ACTION_FMT, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
     fprintf(stdout, ACTION_FMT, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP");
     fprintf(stdout, ACTION_FMT, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP");
     fprintf(stdout, "\n");
@@ -128,6 +133,9 @@ void usage(const char *progname) {
     fprintf(stdout, HELP_FMT, ARG_INDEX, AFMT_INDEX, "Index type (default is stream)");
     fprintf(stdout, HELP_FMT, ARG_TIME, AFMT_TIME, "Time display format (default=none)");
     fprintf(stdout, HELP_FMT, ARG_DTMF, AFMT_DTMF, "RTP payload type for DTMF decodes (default=101)");
+    fprintf(stdout, "\n");
+    fprintf(stdout, SECTION_FMT, "stats arguments");
+    fprintf(stdout, HELP_FMT, ARG_TIME, AFMT_TIME, "Time display format (default=capture)");
     fprintf(stdout, "\n");
     fprintf(stdout, SECTION_FMT, "SRTP encrypt/decrypt arguments");
     fprintf(stdout, HELP_FMT, ARG_ALG, AFMT_ALG, "Cryptographic algorithm suite (default=aes128-sha1-32)");
@@ -425,7 +433,38 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
     }
 }
 
-long milliseconds(struct timeval *tv) { return long(tv->tv_usec / 1000); }
+long milliseconds(const struct timeval *tv) { return long(tv->tv_usec / MSEC_PER_SEC); }
+
+double tv2seconds(const struct timeval *tv) { return (double)(tv->tv_sec) + (double)(tv->tv_usec) / USEC_PER_SEC; }
+
+struct timeval seconds2tv(double timestamp) {
+    struct timeval tv;
+    tv.tv_sec = (time_t)timestamp;
+    tv.tv_usec = (suseconds_t)((timestamp - tv.tv_sec) * USEC_PER_SEC);
+    return tv;
+}
+
+char *timeofday(char *buffer, const size_t buflen, const struct timeval *tv) {
+    time_t nowtime = tv->tv_sec;
+    struct tm *nowtm;
+    char tmbuf[64];
+
+    nowtm = localtime(&nowtime);
+    strftime(tmbuf, sizeof(tmbuf), "%H:%M:%S", nowtm);
+    snprintf(buffer, buflen, "%s.%03ld", tmbuf, milliseconds(tv));
+    return buffer;
+}
+
+char *datetime(char *buffer, const size_t buflen, const struct timeval *tv) {
+    time_t nowtime = tv->tv_sec;
+    struct tm *nowtm;
+    char tmbuf[64];
+
+    nowtm = localtime(&nowtime);
+    strftime(tmbuf, sizeof(tmbuf), "%Y-%m-%d %H:%M:%S", nowtm);
+    snprintf(buffer, buflen, "%s.%03ld", tmbuf, milliseconds(tv));
+    return buffer;
+}
 
 void rtp_pcap_details_time_display(
     time_display_t time_type, char *time_display, const size_t display_size, char *time_dspace, const size_t space_size,
@@ -886,6 +925,133 @@ void rtp_pcap_list(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpm
     }
 }
 
+void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *filter, time_display_t time_type) {
+    uint32_t stream_pkt_count = 0;
+    uint32_t total_pkt_count = 0;
+    struct timeval last_clock;
+    struct timeval first_clock;
+    bool first_packet = true;
+    rtp_pcap_pkt_t packet; // on stack place to hold data
+    rtphdr_t *rtph = NULL; // pointer within current packet
+    StreamStatMap stats = StreamStatMap();
+
+    memset(&last_clock, 0, sizeof(last_clock));
+    memset(&first_clock, 0, sizeof(first_clock));
+
+    do {
+        int result = rtp_pcap_get_next_packet(pcap_file, &total_pkt_count, filter, &packet);
+        if (0 != result) {
+            break;
+        }
+
+        if (first_packet) {
+            first_clock = packet.pcap_hdr.ts;
+            first_packet = false;
+        }
+
+        rtph = packet.rtph;
+        if (stream_pkt_count == 0 && rtp_hdr_get_version(rtph) != RFC_1889_VERSION) {
+            // ignore non-rtp streams
+            continue;
+        }
+
+        stream_pkt_count++;
+
+        // lock down the filter on the address/port, and initialize the clock
+        if (stream_pkt_count == 1) {
+            if (filter->flags & FILTER_FLAG_DST_FILTER) {
+                filter->flags |= FILTER_FLAG_DADDR_SET | FILTER_FLAG_DPORT_SET;
+                filter->daddr = packet.iph->daddr;
+                filter->dport = packet.udph->dest;
+            } else if (filter->flags & FILTER_FLAG_SRC_FILTER) {
+                filter->flags |= FILTER_FLAG_SADDR_SET | FILTER_FLAG_SPORT_SET;
+                filter->saddr = packet.iph->saddr;
+                filter->sport = packet.udph->source;
+            }
+            last_clock = packet.pcap_hdr.ts;
+        }
+
+        rtph = packet.rtph;
+        if (RFC_1889_VERSION != rtp_hdr_get_version(rtph)) {
+            continue;
+        }
+
+        double current = tv2seconds(&packet.pcap_hdr.ts);
+        uint32_t ssrc = rtp_hdr_get_ssrc(rtph);
+        StreamStats *info = NULL;
+        StreamStatMap::const_iterator it = stats.find(ssrc);
+        if (it != stats.end()) {
+            info = it->second;
+        } else {
+            info = new StreamStats(current);
+            stats[ssrc] = info;
+        }
+
+        if (!rtp_hdr_get_marker(rtph) && ((info->last_seq + 1) & 0xffff) == rtp_hdr_get_sequence(rtph) && info->packets > 0) {
+            info->add_delta(current - info->end_time);
+        }
+        info->packets += 1;
+        info->end_time = current;
+        info->last_seq = rtp_hdr_get_sequence(rtph);
+    } while (1);
+
+    if (stats.size() == 0) {
+        fprintf(stdout, "No matching RTP packets found.");
+        return;
+    }
+
+    struct in_addr addr;
+    addr.s_addr = htonl((filter->flags & FILTER_FLAG_DST_FILTER ? filter->daddr : filter->saddr));
+    fprintf(
+        stdout,
+        "IP %s: %s:%d, %u packets (%u in capture)\n",
+        filter->flags & FILTER_FLAG_DST_FILTER ? "destination" : "source",
+        inet_ntoa(addr),
+        filter->flags & FILTER_FLAG_DST_FILTER ? filter->dport : filter->sport,
+        stream_pkt_count,
+        total_pkt_count
+    );
+    for (StreamStatMap::const_iterator it = stats.begin(); it != stats.end(); it++) {
+        uint32_t ssrc = it->first;
+        StreamStats *info = it->second;
+        struct timeval start_tv = seconds2tv(info->start_time);
+        struct timeval end_tv = seconds2tv(info->end_time);
+        char start_buffer[64];
+        char end_buffer[64];
+        char *start_time = NULL;
+        char *end_time = NULL;
+
+        if (time_type == time_display_t::tdisp_date) {
+            start_time = datetime(start_buffer, sizeof(start_buffer), &start_tv);
+            end_time = datetime(end_buffer, sizeof(end_buffer), &end_tv);
+        } else if (time_type == time_display_t::tdisp_timeofday) {
+            start_time = timeofday(start_buffer, sizeof(start_buffer), &start_tv);
+            end_time = timeofday(end_buffer, sizeof(end_buffer), &end_tv);
+        } else if (time_type == time_display_t::tdisp_startcapture) {
+            double cap_start = tv2seconds(&first_clock);
+            snprintf(start_buffer, sizeof(start_buffer), "%0.3f", info->start_time - cap_start);
+            snprintf(end_buffer, sizeof(end_buffer), "%0.3f", info->end_time - cap_start);
+            start_time = start_buffer;
+            end_time = end_buffer;
+        }
+        fprintf(stdout, "  0x%08X:\n", ssrc);
+        if (start_time) {
+            fprintf(stdout, "      start-time: %s\n", start_time);
+        }
+        if (end_time) {
+            fprintf(stdout, "        end-time: %s\n", end_time);
+        }
+        fprintf(stdout, "        duration: %0.3f seconds\n", info->duration());
+        fprintf(stdout, "         packets: %d\n", info->packets);
+        fprintf(stdout, "           delta:\n");
+        fprintf(stdout, "                min: %0.3f msecs\n", info->min_delta * 1000);
+        fprintf(stdout, "               mean: %0.3f msecs\n", info->mean_delta() * 1000);
+        fprintf(stdout, "                max: %0.3f msecs\n", info->max_delta * 1000);
+    }
+
+    return;
+}
+
 srtp_algorithm_t rtp_pcap_parse_srtp_alg(const char *algstr) {
     if (NULL == algstr) {
         return srtp_alg_none;
@@ -1219,6 +1385,7 @@ int main(int argc, char *argv[]) {
     rtp_pcap_details_args_t detail_args;
     rtp_pcap_list_args_t list_args;
     rtp_pcap_srtp_args_t srtp_args;
+    time_display_t stats_time = time_display_t::tdisp_startcapture;
     int i;
     int rval = 0;
 
@@ -1273,6 +1440,7 @@ int main(int argc, char *argv[]) {
             }
         } else if (0 == strcasecmp(ARG_TIME, arg)) {
             detail_args.time_type = rtp_pcap_time_display_parse(NEXT_ARG(i, argc, argv));
+            stats_time = detail_args.time_type;
         } else if (0 == strcasecmp(ARG_INDEX, arg)) {
             detail_args.index_type = rtp_pcap_index_display_parse(NEXT_ARG(i, argc, argv));
         } else if (0 == strcasecmp(ARG_ALL, arg)) {
@@ -1299,6 +1467,8 @@ int main(int argc, char *argv[]) {
         } else if (0 == strcasecmp(ARG_ACT_DETAILS, arg)) {
             action = arg;
         } else if (0 == strcasecmp(ARG_ACT_LIST, arg)) {
+            action = arg;
+        } else if (0 == strcasecmp(ARG_ACT_STATS, arg)) {
             action = arg;
         } else if (0 == strcasecmp(ARG_ACT_DECRYPT, arg)) {
             action = arg;
@@ -1370,6 +1540,8 @@ int main(int argc, char *argv[]) {
     } else if (0 == strcasecmp(action, ARG_ACT_DECRYPT)) {
         srtp_args.op = cryptop_decrypt;
         rtp_pcap_srtp(progname, pcap_file, &filter, &srtp_args);
+    } else if (0 == strcasecmp(action, ARG_ACT_STATS)) {
+        rtp_pcap_stats(progname, pcap_file, &filter, stats_time);
     } else {
         fprintf(stdout, "%s: unhandled action='%s'\n", progname, action);
         rval = -4;
