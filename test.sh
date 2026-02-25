@@ -111,6 +111,20 @@ check_result "G726 details" 0 $result
 check_substring "G726 details" "$G726_DETAILS" "$output"
 
 #################################################
+# GSM details
+
+# NOTE: correct times relative to capture start
+GSM_DETAILS="     6  0.023 Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32222, Time=160, Mark, payload bytes=33
+     7-430     Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32223-32645, Time=160 samples/pkt
+   430  8.503 Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32646, Time=68000, payload bytes=33"
+
+output=$($APP details --file $EXAMPLES/sip-rtp-gsm.pcap --time capture 2>&1)
+result=$?
+
+check_result "GSM details" 0 $result
+check_substring "GSM details" "$GSM_DETAILS" "$output"
+
+#################################################
 # G729 all
 G729_ALL="     6      0 Payload type=g729(18), SSRC=0x044559A1, Seq=61831, Time=160, Mark, payload bytes=20
      7     19 Payload type=g729(18), SSRC=0x044559A1, Seq=61832, Time=320, payload bytes=20

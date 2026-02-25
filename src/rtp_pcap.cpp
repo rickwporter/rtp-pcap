@@ -646,6 +646,7 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
     uint8_t last_dtmf_event;
     uint32_t last_dtmf_time;
     int n_suppressed = 0;
+    bool first_packet = true;
     struct timeval last_clock;
     struct timeval first_clock;
     uint32_t samples_per_packet = 0;
@@ -695,6 +696,11 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
             break;
         }
 
+        if (first_packet) {
+            first_clock = packet.pcap_hdr.ts;
+            first_packet = false;
+        }
+
         rtph = packet.rtph;
         if (stream_pkt_count == 0 && rtp_hdr_get_version(rtph) != RFC_1889_VERSION) {
             // ignore non-rtp streams
@@ -715,7 +721,7 @@ void rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
                 filter->saddr = packet.iph->saddr;
                 filter->sport = packet.udph->source;
             }
-            last_clock = first_clock = packet.pcap_hdr.ts;
+            last_clock = packet.pcap_hdr.ts;
         }
 
         // prepare the buffers for time displays
