@@ -36,6 +36,7 @@ HELP_START="  rtp-pcap <action> --file <file> [arguments]
           list : List all RTP streams
        summary : Summarize the RTP stream
        details : Provide RTP packet details
+         stats : Provide RTP packet statistics for a stream
        encrypt : Encrypt single RTP stream to another PCAP
        decrypt : Decrypt single RTP stream to another PCAP
 "
@@ -225,6 +226,57 @@ result=$?
 
 check_result "DTMF details" 0 $result
 check_substring "DTMF details" "$DTMF_DETAILS" "$output"
+
+
+#################################################
+# G726 stats
+
+G726_STATS="  0x043FFA6E:
+      start-time: 25.859
+        end-time: 34.339
+        duration: 8.480 seconds
+         packets: 425
+           delta:
+                min: 19.951 msecs
+               mean: 20.000 msecs
+                max: 20.058 msecs
+  0x043FFA7F:
+      start-time: 43.083
+        end-time: 51.563
+        duration: 8.480 seconds
+         packets: 425
+           delta:
+                min: 19.946 msecs
+               mean: 20.000 msecs
+                max: 20.061 msecs"
+
+output=$($APP stats --file $EXAMPLES/sip-rtp-g726.pcap 2>&1)
+result=$?
+
+check_result "G726 stats" 0 $result
+check_substring "G726 stats" "$G726_STATS" "$output"
+
+
+#################################################
+# DTMF stats
+
+# NOTE: the sequence rollover in the first SSRC
+DTMF_STATS="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
+  0x9A7B5382:
+      start-time: 08:03:42.159
+        end-time: 08:04:02.140
+        duration: 19.981 seconds
+         packets: 665
+           delta:
+                min: 29.902 msecs
+               mean: 30.001 msecs
+                max: 30.097 msecs"
+
+output=$($APP stats --file $EXAMPLES/SIP_DTMF2.pcap --time time-of-day 2>&1)
+result=$?
+
+check_result "DTMF stats" 0 $result
+check_substring "DTMF stats" "$DTMF_STATS" "$output"
 
 
 #################################################

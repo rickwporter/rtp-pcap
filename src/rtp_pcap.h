@@ -87,3 +87,40 @@ typedef struct {
 } rtp_pcap_srtp_args_t;
 
 typedef map<srtp_err_status_t, int> SrtpErrorMap;
+
+class StreamStats {
+  private:
+    // hide the default constructor -- need to provide start/end times
+    StreamStats() {}
+
+  public:
+    double start_time;
+    double end_time;
+    uint32_t packets;
+    uint16_t last_seq;
+    uint32_t count_delta;
+    double min_delta;
+    double max_delta;
+    double sum_delta;
+
+    StreamStats(double time)
+        : start_time(time), end_time(time), packets(0), last_seq(0), count_delta(0), min_delta(1000.0), max_delta(0.0), sum_delta(0.0) {}
+
+    void add_delta(double delta) {
+        this->max_delta = max(this->max_delta, delta);
+        this->min_delta = min(this->min_delta, delta);
+        this->sum_delta += delta;
+        this->count_delta += 1;
+    }
+
+    double mean_delta() {
+        if (this->count_delta == 0) {
+            return 0.0;
+        }
+        return this->sum_delta / this->count_delta;
+    }
+
+    double duration() const { return this->end_time - this->start_time; }
+};
+
+typedef map<uint32_t, StreamStats *> StreamStatMap;
