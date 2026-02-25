@@ -263,8 +263,6 @@ check_substring "G726 stats" "$G726_STATS" "$output"
 # NOTE: the sequence rollover in the first SSRC
 DTMF_STATS="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
   0x9A7B5382:
-      start-time: 08:03:42.159
-        end-time: 08:04:02.140
         duration: 19.981 seconds
          packets: 665
            delta:
@@ -272,7 +270,7 @@ DTMF_STATS="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
                mean: 30.001 msecs
                 max: 30.097 msecs"
 
-output=$($APP stats --file $EXAMPLES/SIP_DTMF2.pcap --time time-of-day 2>&1)
+output=$($APP stats --file $EXAMPLES/SIP_DTMF2.pcap --time none 2>&1)
 result=$?
 
 check_result "DTMF stats" 0 $result
