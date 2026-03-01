@@ -229,6 +229,26 @@ check_substring "DTMF details" "$DTMF_DETAILS" "$output"
 
 
 #################################################
+# DTMF missed
+DTMF_MISSED="    27  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52731, Time=767118487, payload bytes=240
+    28-1044  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52732-53239, Time=240 samples/pkt
+  1044  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53240, Time=767240647, payload bytes=240
+***** Missed 1 sequence numbers ******
+  1047  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53242, Time=767241127, payload bytes=240
+  1049-1199  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53243-53317, Time=240 samples/pkt
+  1199  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53318, Time=767259367, payload bytes=240
+***** Missed 1 sequence numbers ******
+  1202  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53320, Time=767259847, payload bytes=240
+  1204-1356  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53321-53396, Time=240 samples/pkt
+  1356  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53397, Time=767278327, payload bytes=240"
+
+output=$($APP details --file $EXAMPLES/SIP_DTMF2.pcap 2>&1)
+result=$?
+
+check_result "DTMF missed" 0 $result
+check_substring "DTMF missed" "$DTMF_MISSED" "$output"
+
+#################################################
 # G726 stats
 
 G726_STATS="  0x043FFA6E:
