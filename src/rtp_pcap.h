@@ -9,6 +9,7 @@
 using namespace std;
 
 #define PKT_BUF_BYTES 2048
+#define RTP_STATS_WINDOW_PACKETS 64
 
 typedef struct {
     uint32_t flags;
@@ -102,9 +103,15 @@ class StreamStats {
     double min_delta;
     double max_delta;
     double sum_delta;
+    uint8_t last_pt;
+    int pt_changes;
+    int lost;
+    int misordered;
+    int seq_jumps;
 
     StreamStats(double time)
-        : start_time(time), end_time(time), packets(0), last_seq(0), count_delta(0), min_delta(1000.0), max_delta(0.0), sum_delta(0.0) {}
+        : start_time(time), end_time(time), packets(0), last_seq(0), count_delta(0), min_delta(1000.0), max_delta(0.0), sum_delta(0.0), last_pt(0),
+          pt_changes(0), lost(0), misordered(0), seq_jumps(0) {}
 
     void add_delta(double delta) {
         this->max_delta = max(this->max_delta, delta);
@@ -113,7 +120,32 @@ class StreamStats {
         this->count_delta += 1;
     }
 
-    double mean_delta() {
+    void set_seq(uint16_t seq) {
+        // Set the last sequence number and other related items.
+        if (this->packets) {
+            int delta = (seq - this->last_seq - 1);
+            if ((uint16_t)delta == 0) {
+            } else if (abs(delta) > RTP_STATS_WINDOW_PACKETS) {
+                printf("last=%d, curr=%d, delta=%d\n", this->last_seq, seq, delta);
+                this->seq_jumps += 1;
+            } else if (delta > 0) {
+                this->lost += delta;
+            } else if (delta < 0) {
+                this->misordered += 1;
+            }
+        }
+        this->last_seq = seq;
+    }
+
+    void set_pt(uint8_t pt) {
+        // Set last payload type
+        if (this->packets && this->last_pt != pt) {
+            this->pt_changes += 1;
+        }
+        this->last_pt = pt;
+    }
+
+    double mean_delta() const {
         if (this->count_delta == 0) {
             return 0.0;
         }
