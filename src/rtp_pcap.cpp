@@ -86,7 +86,6 @@ using namespace std;
 // safe way to get the next string based on i
 #define NEXT_ARG(i, c, v) (i + 1 < c ? v[++i] : NULL)
 
-#define RTP_STATS_WINDOW_PACKETS 64
 #define RTP_PTYPE_DTMF_DEFAULT 101
 
 #define FILTER_FLAG_SRC_FILTER (1 << 0)
@@ -990,9 +989,10 @@ void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *
         if (!rtp_hdr_get_marker(rtph) && ((info->last_seq + 1) & 0xffff) == rtp_hdr_get_sequence(rtph) && info->packets > 0) {
             info->add_delta(current - info->end_time);
         }
+        info->set_pt(rtp_hdr_get_ptype(rtph));
+        info->set_seq(rtp_hdr_get_sequence(rtph));
         info->packets += 1;
         info->end_time = current;
-        info->last_seq = rtp_hdr_get_sequence(rtph);
     } while (1);
 
     if (stats.size() == 0) {
@@ -1043,6 +1043,10 @@ void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *
         }
         fprintf(stdout, "        duration: %0.3f seconds\n", info->duration());
         fprintf(stdout, "         packets: %d\n", info->packets);
+        fprintf(stdout, "            lost: %d\n", info->lost);
+        fprintf(stdout, "      misordered: %d\n", info->misordered);
+        fprintf(stdout, "           jumps: %d\n", info->seq_jumps);
+        fprintf(stdout, "      pt changes: %d\n", info->pt_changes);
         fprintf(stdout, "           delta:\n");
         fprintf(stdout, "                min: %0.3f msecs\n", info->min_delta * 1000);
         fprintf(stdout, "               mean: %0.3f msecs\n", info->mean_delta() * 1000);

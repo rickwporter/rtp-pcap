@@ -229,8 +229,8 @@ check_substring "DTMF details" "$DTMF_DETAILS" "$output"
 
 
 #################################################
-# DTMF missed
-DTMF_MISSED="    27  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52731, Time=767118487, payload bytes=240
+# DTMF details missed
+DTMF_DETAILS_MISSED="    27  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52731, Time=767118487, payload bytes=240
     28-1044  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52732-53239, Time=240 samples/pkt
   1044  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53240, Time=767240647, payload bytes=240
 ***** Missed 1 sequence numbers ******
@@ -245,8 +245,8 @@ DTMF_MISSED="    27  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52731, Time=7671
 output=$($APP details --file $EXAMPLES/SIP_DTMF2.pcap 2>&1)
 result=$?
 
-check_result "DTMF missed" 0 $result
-check_substring "DTMF missed" "$DTMF_MISSED" "$output"
+check_result "DTMF details missed" 0 $result
+check_substring "DTMF details missed" "$DTMF_DETAIS_MISSED" "$output"
 
 #################################################
 # G726 stats
@@ -256,6 +256,10 @@ G726_STATS="  0x043FFA6E:
         end-time: 34.339
         duration: 8.480 seconds
          packets: 425
+            lost: 0
+      misordered: 0
+           jumps: 0
+      pt changes: 0
            delta:
                 min: 19.951 msecs
                mean: 20.000 msecs
@@ -265,6 +269,10 @@ G726_STATS="  0x043FFA6E:
         end-time: 51.563
         duration: 8.480 seconds
          packets: 425
+            lost: 0
+      misordered: 0
+           jumps: 0
+      pt changes: 0
            delta:
                 min: 19.946 msecs
                mean: 20.000 msecs
@@ -278,13 +286,17 @@ check_substring "G726 stats" "$G726_STATS" "$output"
 
 
 #################################################
-# DTMF stats
+# DTMF stats missed
 
 # NOTE: the sequence rollover in the first SSRC
-DTMF_STATS="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
+DTMF_STATS_MISSED="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
   0x9A7B5382:
         duration: 19.981 seconds
          packets: 665
+            lost: 2
+      misordered: 0
+           jumps: 0
+      pt changes: 0
            delta:
                 min: 29.902 msecs
                mean: 30.001 msecs
@@ -293,8 +305,34 @@ DTMF_STATS="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
 output=$($APP stats --file $EXAMPLES/SIP_DTMF2.pcap --time none 2>&1)
 result=$?
 
-check_result "DTMF stats" 0 $result
-check_substring "DTMF stats" "$DTMF_STATS" "$output"
+check_result "DTMF stats missed" 0 $result
+check_substring "DTMF stats missed" "$DTMF_STATS_MISSED" "$output"
+
+
+#################################################
+# DTMF stats change
+
+# NOTE: the sequence rollover in the first SSRC
+DTMF_STATS_CHANGE="IP destination: 192.168.105.110:4376, 666 packets (1360 in capture)
+  0x5711BF84:
+      start-time: 76.878
+        end-time: 96.829
+        duration: 19.951 seconds
+         packets: 666
+            lost: 0
+      misordered: 0
+           jumps: 0
+      pt changes: 14
+           delta:
+                min: 29.930 msecs
+               mean: 30.001 msecs
+                max: 30.068 msecs"
+
+output=$($APP stats --file $EXAMPLES/SIP_DTMF2.pcap --ip 192.168.105.110 2>&1)
+result=$?
+
+check_result "DTMF stats change" 0 $result
+check_substring "DTMF stats change" "$DTMF_STATS_CHANGE" "$output"
 
 
 #################################################
