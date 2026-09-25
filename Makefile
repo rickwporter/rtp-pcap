@@ -14,6 +14,9 @@ LDLIBS              += -lpcap
 LDLIBS              += -lsrtp2
 
 OBJ_DIR             ?= objs
+COVERAGE_OBJ_DIR    ?= objs-cov
+COVERAGE_DIR        ?= coverage
+GCOV                ?= gcov
 SRC_DIR             := src
 SEPARATOR           := "****************************"
 APP                 := rtp-pcap
@@ -41,6 +44,8 @@ print_env: ## Print select environment variables
 	@echo $(SEPARATOR)
 	@echo "SRC_DIR         : $(SRC_DIR)"
 	@echo "OBJ_DIR         : $(OBJ_DIR)"
+	@echo "COVERAGE_OBJ_DIR: $(COVERAGE_OBJ_DIR)"
+	@echo "COVERAGE_DIR    : $(COVERAGE_DIR)"
 	@echo "COBJS           : $(COBJS)"
 	@echo "CPPOBJS         : $(CPPOBJS)"
 	@echo "CFLAGS          : $(CFLAGS)"
@@ -75,8 +80,30 @@ $(APP): $(COBJS) $(CPPOBJS)
 
 app: $(APP) ## Build the application
 
-app-clean: ## Cleanup the application
-	rm -rf $(OBJ_DIR) $(APP)
-
 test: ## Run test script
 	./test.sh
+
+app-clean: ## Cleanup the application
+	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
+	rm -f *.gcov
+
+###############################
+##@ Coverage
+.PHONY: test coverage coverage-report
+
+coverage: ## Build with coverage, run tests, and report
+	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
+	rm -f *.gcov
+	$(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR) CFLAGS="$(CFLAGS) --coverage" LDFLAGS="$(LDFLAGS) --coverage"
+	$(MAKE) test; status=$$?; \
+	$(MAKE) coverage-report; report=$$?; \
+	if [ $$status -ne 0 ]; then exit $$status; fi; \
+	exit $$report
+
+coverage-report: ## Summarize coverage from the latest instrumented test run
+	$(ECHO) $(SEPARATOR)
+	$(ECHO) "Coverage report: $(COVERAGE_DIR)/summary.txt"
+	$(QUIET)mkdir -p $(COVERAGE_DIR)
+	$(QUIET)rm -f *.gcov
+	$(QUIET)LC_ALL=C $(GCOV) -b -r -p -o $(COVERAGE_OBJ_DIR) $(addprefix $(SRC_DIR)/,$(CSRCS) $(CPPSRCS)) > $(COVERAGE_DIR)/gcov.txt
+	cat $(COVERAGE_DIR)/gcov.txt
