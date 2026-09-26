@@ -7,11 +7,14 @@ endif
 CC                  := gcc
 CXX                 := g++
 LXX                 := g++
-CFLAGS              := -O0 -Wall -Werror -ggdb
+INCLUDE_SRTP        ?= 1
+CFLAGS              := -O0 -Wall -Werror -ggdb -DINCLUDE_SRTP=$(INCLUDE_SRTP)
 
 LDLIBS              ?= -Bstatic
 LDLIBS              += -lpcap
+ifneq ($(INCLUDE_SRTP), 0)
 LDLIBS              += -lsrtp2
+endif
 
 OBJ_DIR             ?= objs
 COVERAGE_OBJ_DIR    ?= objs-cov

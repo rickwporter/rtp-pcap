@@ -1,6 +1,8 @@
 #pragma once
 #include <map>
+#if INCLUDE_SRTP
 #include <srtp2/srtp.h>
+#endif // INCLUDE_SRTP
 #include <stdint.h>
 
 #include "ip_hdrs.h"
@@ -66,6 +68,7 @@ typedef struct {
     bool all_udp;
 } rtp_pcap_list_args_t;
 
+#if INCLUDE_SRTP
 typedef enum {
     cryptop_none,
     cryptop_encrypt,
@@ -88,6 +91,7 @@ typedef struct {
 } rtp_pcap_srtp_args_t;
 
 typedef map<srtp_err_status_t, int> SrtpErrorMap;
+#endif // INCLUDE_SRTP
 
 class StreamStats {
   private:
