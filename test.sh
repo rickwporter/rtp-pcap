@@ -37,9 +37,8 @@ HELP_START="  rtp-pcap <action> --file <file> [arguments]
        summary : Summarize the RTP stream
        details : Provide RTP packet details
          stats : Provide RTP packet statistics for a stream
-       encrypt : Encrypt single RTP stream to another PCAP
-       decrypt : Decrypt single RTP stream to another PCAP
 "
+# NOTE: SRTP actions deliberately excluded
 
 output=$($APP --help 2>&1)
 result=$?
@@ -156,6 +155,7 @@ check_result "iLBC summary" 0 $result
 check_substring "iLBC summary" "$ILBC_SUMMARY" "$output"
 
 
+if [ "$INCLUDE_SRTP" -ne 0 ]; then
 #################################################
 # SRTP decrypt (base64)
 SRTP_DECRYPT="rtp-pcap: decrypt results
@@ -202,6 +202,7 @@ result=$?
 check_result "SRTP decrypt (bad)" 0 $result
 check_substring "SRTP decrypt (bad)" "$SRTP_DECRYPT" "$output"
 
+fi
 
 #################################################
 # DTMF details

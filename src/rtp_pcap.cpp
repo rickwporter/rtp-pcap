@@ -111,8 +111,10 @@ void usage(const char *progname) {
     fprintf(stdout, ACTION_FMT, ARG_ACT_SUMMARY, "Summarize the RTP stream");
     fprintf(stdout, ACTION_FMT, ARG_ACT_DETAILS, "Provide RTP packet details");
     fprintf(stdout, ACTION_FMT, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
+#if INCLUDE_SRTP
     fprintf(stdout, ACTION_FMT, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP");
     fprintf(stdout, ACTION_FMT, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP");
+#endif // INCLUDE_SRTP
     fprintf(stdout, "\n");
     fprintf(stdout, SECTION_FMT, "Common arguments");
     fprintf(stdout, HELP_FMT, ARG_FILE, AFMT_FILE, "PCAP file");
@@ -136,6 +138,7 @@ void usage(const char *progname) {
     fprintf(stdout, SECTION_FMT, "stats arguments");
     fprintf(stdout, HELP_FMT, ARG_TIME, AFMT_TIME, "Time display format (default=capture)");
     fprintf(stdout, "\n");
+#if INCLUDE_SRTP
     fprintf(stdout, SECTION_FMT, "SRTP encrypt/decrypt arguments");
     fprintf(stdout, HELP_FMT, ARG_ALG, AFMT_ALG, "Cryptographic algorithm suite (default=aes128-sha1-32)");
     fprintf(stdout, HELP_FMT, ARG_KEY, AFMT_KEY, "Master key in hexidecimal format");
@@ -143,6 +146,7 @@ void usage(const char *progname) {
     fprintf(stdout, HELP_FMT, ARG_FORCE, AFMT_FORCE, "Overwrite existing output file");
     fprintf(stdout, HELP_FMT, ARG_DEBUG, AFMT_DEBUG, "Turn on libSRTP debug");
     fprintf(stdout, "\n");
+#endif // INCLUDE_SRTP
 }
 
 void rtp_pcap_rtpmap_init(rtpmap_t &map) {
@@ -1056,6 +1060,7 @@ void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *
     return;
 }
 
+#if INCLUDE_SRTP
 srtp_algorithm_t rtp_pcap_parse_srtp_alg(const char *algstr) {
     if (NULL == algstr) {
         return srtp_alg_none;
@@ -1372,6 +1377,7 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
     pcap_dump_close(dumper);
     pcap_close(output);
 }
+#endif // INCLUDE_SRTP
 
 int main(int argc, char *argv[]) {
     char *progname;
@@ -1388,7 +1394,9 @@ int main(int argc, char *argv[]) {
     pcap_t *pcap_file;
     rtp_pcap_details_args_t detail_args;
     rtp_pcap_list_args_t list_args;
+#if INCLUDE_SRTP
     rtp_pcap_srtp_args_t srtp_args;
+#endif // INCLUDE_SRTP
     time_display_t stats_time = time_display_t::tdisp_startcapture;
     int i;
     int rval = 0;
@@ -1408,11 +1416,13 @@ int main(int argc, char *argv[]) {
     detail_args.index_type = idisp_pcap;
     list_args.odd = false;
     list_args.all_udp = false;
+#if INCLUDE_SRTP
     srtp_args.op = cryptop_none;
     srtp_args.alg = srtp_alg_aes128_sha1_32bit;
     srtp_args.outfile = "output.pcap";
     srtp_args.force = false;
     srtp_args.debug = false;
+#endif // INCLUDE_SRTP
 
     // be friendly when no args are provided
     if (1 == argc) {
@@ -1456,6 +1466,7 @@ int main(int argc, char *argv[]) {
             list_args.odd = true;
         } else if (0 == strcasecmp(ARG_MAP, arg)) {
             rtp_pcap_rtpmap_parse_arg(rtpmap, NEXT_ARG(i, argc, argv));
+#if INCLUDE_SRTP
         } else if (0 == strcasecmp(ARG_ALG, arg)) {
             srtp_args.alg = rtp_pcap_parse_srtp_alg(NEXT_ARG(i, argc, argv));
         } else if (0 == strcasecmp(ARG_KEY, arg)) {
@@ -1466,6 +1477,7 @@ int main(int argc, char *argv[]) {
             srtp_args.force = true;
         } else if (0 == strcasecmp(ARG_DEBUG, arg)) {
             srtp_args.debug = true;
+#endif // INCLUDE_SRTP
         } else if (0 == strcasecmp(ARG_ACT_SUMMARY, arg)) {
             action = arg;
         } else if (0 == strcasecmp(ARG_ACT_DETAILS, arg)) {
@@ -1474,10 +1486,12 @@ int main(int argc, char *argv[]) {
             action = arg;
         } else if (0 == strcasecmp(ARG_ACT_STATS, arg)) {
             action = arg;
+#if INCLUDE_SRTP
         } else if (0 == strcasecmp(ARG_ACT_DECRYPT, arg)) {
             action = arg;
         } else if (0 == strcasecmp(ARG_ACT_ENCRYPT, arg)) {
             action = arg;
+#endif // INCLUDE_SRTP
         } else if (0 == strcasecmp(ARG_HELP, arg) || 0 == strcasecmp("help", arg)) {
             usage(progname);
             return 0;
@@ -1538,12 +1552,14 @@ int main(int argc, char *argv[]) {
         rtp_pcap_details(progname, pcap_file, rtpmap, &filter, &detail_args);
     } else if (0 == strcasecmp(action, ARG_ACT_LIST)) {
         rtp_pcap_list(progname, pcap_file, rtpmap, &filter, &list_args);
+#if INCLUDE_SRTP
     } else if (0 == strcasecmp(action, ARG_ACT_ENCRYPT)) {
         srtp_args.op = cryptop_encrypt;
         rtp_pcap_srtp(progname, pcap_file, &filter, &srtp_args);
     } else if (0 == strcasecmp(action, ARG_ACT_DECRYPT)) {
         srtp_args.op = cryptop_decrypt;
         rtp_pcap_srtp(progname, pcap_file, &filter, &srtp_args);
+#endif // INCLUDE_SRTP
     } else if (0 == strcasecmp(action, ARG_ACT_STATS)) {
         rtp_pcap_stats(progname, pcap_file, &filter, stats_time);
     } else {
