@@ -155,7 +155,7 @@ check_result "iLBC summary" 0 $result
 check_substring "iLBC summary" "$ILBC_SUMMARY" "$output"
 
 
-if [[ "$INCLUDE_SRTP" != "0" ]]; then
+if [[ "$INCLUDE_SRTP" -ne "0" ]]; then
 #################################################
 # SRTP decrypt (base64)
 SRTP_DECRYPT="rtp-pcap: decrypt results
