@@ -5,6 +5,7 @@
 #include <pcap/pcap.h>
 
 #include "action_details.h"
+#include "packet_utilities.h"
 #include "rtp_utils.h"
 #include "time_utilities.h"
 

@@ -1,6 +1,8 @@
 #pragma once
 
-#include "rtp_pcap.h"
+#include <pcap/pcap.h>
+
+#include "arguments.h"
 
 typedef struct {
     bool odd;

@@ -5,9 +5,13 @@
 #include <pcap/pcap.h>
 
 #include "action_summary.h"
+#include "packet_utilities.h"
 #include "rtp_utils.h"
 
 using namespace std;
+
+typedef std::map<uint32_t, uint32_t> map_count_t;
+typedef map_count_t::iterator map_count_i;
 
 void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpmap, rtp_pcap_filter_t *filter) {
     map_count_t ssrcs;

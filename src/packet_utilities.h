@@ -8,6 +8,7 @@
 #include "rtp_types.h"
 
 #define PKT_BUF_BYTES 2048
+#define RTP_STATS_WINDOW_PACKETS 64
 
 // #define DEBUG_PRINT(fmt, args...) fprintf(stderr, "%s: " fmt, __func__, ##args)
 #define DEBUG_PRINT(fmt, args...)

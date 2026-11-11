@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <arpa/inet.h> // for inet_ntoa()
-#include <cstdio>
 #include <cstdlib>
 #include <cstring> // for memset()
 #include <netinet/in.h>
@@ -8,6 +7,7 @@
 #include <pcap/pcap.h>
 
 #include "action_stats.h"
+#include "packet_utilities.h"
 #include "rtp_utils.h"
 #include "time_utilities.h"
 

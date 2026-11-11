@@ -1,14 +1,9 @@
 #include <algorithm>
 #include <arpa/inet.h> // for inet_network()
-#include <cstdio>
-#include <netinet/in.h>
-#include <stdlib.h> // for atoi()
-#include <string.h> // for memset()
+#include <string.h>    // for memset()
 #include <string>
 #include <strings.h> // for strcasecmp()
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <pcap/pcap.h>
 
@@ -17,10 +12,7 @@
 #include "action_srtp.h"
 #include "action_stats.h"
 #include "action_summary.h"
-#include "ip_hdrs.h"
-#include "rtp_pcap.h"
-#include "rtp_types.h"
-#include "rtp_utils.h"
+#include "arguments.h"
 
 using namespace std;
 

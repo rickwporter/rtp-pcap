@@ -1,6 +1,8 @@
 #pragma once
 
-#include "rtp_pcap.h"
+#include <pcap/pcap.h>
+
+#include "arguments.h"
 
 typedef struct {
     time_display_t time_type;
