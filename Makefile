@@ -9,13 +9,14 @@ CXX                 := g++
 LXX                 := g++
 INCLUDE_SRTP        ?= 1
 CFLAGS              := -O0 -Wall -Werror -ggdb -DINCLUDE_SRTP=$(INCLUDE_SRTP)
+LDFLAGS             := -Bstatic
 
 EXTRA_CFLAGS        ?= 
 EXTRA_LDFLAGS       ?=
 
-LDLIBS              += -lpcap
+LDFLAGS             += -lpcap
 ifneq ("$(INCLUDE_SRTP)", "0")
-LDLIBS              += -lsrtp2
+LDFLAGS             += -lsrtp2
 endif
 
 OBJ_DIR             ?= objs
@@ -56,7 +57,6 @@ env: ## Print select environment variables
 	@echo "CFLAGS          : $(CFLAGS)"
 	@echo "EXTRA_CFLAGS    : $(EXTRA_CFLAGS)"
 	@echo "LDFLAGS         : $(LDFLAGS)"
-	@echo "LDLIBS          : $(LDLIBS)"
 	@echo "EXTRA_LDFLAGS   : $(EXTRA_LDFLAGS)"
 
 clean: app-clean ## Cleanup application files
@@ -87,7 +87,7 @@ $(COBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)
 
 $(APP): $(COBJS) $(CPPOBJS)
 	$(ECHO) "Linking $@..."
-	$(QUIET)$(LXX) -o $@ $(LDFLAGS) $(EXTRA_LDFLAGS) $(LDLIBS) $(COBJS) $(CPPOBJS)
+	$(QUIET)$(LXX) -o $@ $(LDFLAGS) $(EXTRA_LDFLAGS) $(COBJS) $(CPPOBJS)
 
 app: env $(APP) ## Build the application
 
