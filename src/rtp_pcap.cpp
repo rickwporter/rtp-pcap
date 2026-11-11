@@ -1157,9 +1157,9 @@ static inline const char *rtp_pcap_get_srtp_error_string(srtp_err_status_t statu
         return "old packet index";
     case srtp_err_status_pkt_idx_adv:
         return "future packet index";
+    default:
+        return "unkwown";
     }
-
-    return "unknown";
 }
 
 bool isxstring(const char *input) {
