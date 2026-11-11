@@ -87,7 +87,7 @@ $(COBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)
 
 $(APP): $(COBJS) $(CPPOBJS)
 	$(ECHO) "Linking $@..."
-	$(QUIET)$(LXX) -o $@ $(LDFLAGS) $(EXTRA_LDFLAGS) $(COBJS) $(CPPOBJS)
+	$(QUIET)$(LXX) -o $@ $(COBJS) $(CPPOBJS) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 app: env $(APP) ## Build the application
 
