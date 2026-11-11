@@ -43,7 +43,7 @@ help: ## This message
 
 ###########
 ##@ General
-print_env: ## Print select environment variables
+env: ## Print select environment variables
 	@echo $(SEPARATOR)
 	@echo "SRC_DIR         : $(SRC_DIR)"
 	@echo "OBJ_DIR         : $(OBJ_DIR)"
@@ -52,6 +52,8 @@ print_env: ## Print select environment variables
 	@echo "COBJS           : $(COBJS)"
 	@echo "CPPOBJS         : $(CPPOBJS)"
 	@echo "CFLAGS          : $(CFLAGS)"
+	@echo "LDFLAGS         : $(LDFLAGS)"
+	@echo "LDLIBS          : $(LDLIBS)"
 
 clean: app-clean ## Cleanup application files
 
@@ -81,7 +83,7 @@ $(APP): $(COBJS) $(CPPOBJS)
 	$(ECHO) "Linking $(APP)..."
 	$(QUIET)$(LXX) -o $(APP) $(COBJS) $(CPPOBJS) $(LDFLAGS) $(LDLIBS)
 
-app: $(APP) ## Build the application
+app: env $(APP) ## Build the application
 
 test: ## Run test script
 	./test.sh
