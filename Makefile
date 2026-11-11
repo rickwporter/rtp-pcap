@@ -9,11 +9,14 @@ CXX                 := g++
 LXX                 := g++
 INCLUDE_SRTP        ?= 1
 CFLAGS              := -O0 -Wall -Werror -ggdb -DINCLUDE_SRTP=$(INCLUDE_SRTP)
+LDFLAGS             := -Bstatic
 
-LDLIBS              ?= -Bstatic
-LDLIBS              += -lpcap
+EXTRA_CFLAGS        ?= 
+EXTRA_LDFLAGS       ?=
+
+LDFLAGS             += -lpcap
 ifneq ("$(INCLUDE_SRTP)", "0")
-LDLIBS              += -lsrtp2
+LDFLAGS             += -lsrtp2
 endif
 
 OBJ_DIR             ?= objs
@@ -43,7 +46,7 @@ help: ## This message
 
 ###########
 ##@ General
-print_env: ## Print select environment variables
+env: ## Print select environment variables
 	@echo $(SEPARATOR)
 	@echo "SRC_DIR         : $(SRC_DIR)"
 	@echo "OBJ_DIR         : $(OBJ_DIR)"
@@ -52,6 +55,9 @@ print_env: ## Print select environment variables
 	@echo "COBJS           : $(COBJS)"
 	@echo "CPPOBJS         : $(CPPOBJS)"
 	@echo "CFLAGS          : $(CFLAGS)"
+	@echo "EXTRA_CFLAGS    : $(EXTRA_CFLAGS)"
+	@echo "LDFLAGS         : $(LDFLAGS)"
+	@echo "EXTRA_LDFLAGS   : $(EXTRA_LDFLAGS)"
 
 clean: app-clean ## Cleanup application files
 
@@ -63,6 +69,8 @@ uncommitted: ## Check for uncommitted changes
 
 check-format: format uncommitted ## Formats source and looks for changes
 
+all: format clean coverage ## build and test
+
 ###############################
 ##@ Build
 $(OBJ_DIR):
@@ -71,15 +79,15 @@ $(OBJ_DIR):
 
 $(CPPOBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)
 	$(ECHO) "Compiling $<..."
-	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $<
+	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(EXTRA_CFLAGS) $<
 
 $(COBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)
 	$(ECHO) "Compiling $<..."
-	$(QUIET)$(CC) -c -o $@ $(CFLAGS) $<
+	$(QUIET)$(CC) -c -o $@ $(CFLAGS) $(EXTRA_CFLAGS) $<
 
 $(APP): $(COBJS) $(CPPOBJS)
-	$(ECHO) "Linking $(APP)..."
-	$(QUIET)$(LXX) -o $(APP) $(COBJS) $(CPPOBJS) $(LDFLAGS) $(LDLIBS)
+	$(ECHO) "Linking $@..."
+	$(QUIET)$(LXX) -o $@ $(COBJS) $(CPPOBJS) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 app: $(APP) ## Build the application
 

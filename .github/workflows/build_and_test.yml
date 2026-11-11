@@ -17,7 +17,7 @@ jobs:
     - name: uname
       run: uname -a
     - name: build
-      run: make app
+      run: make env app
     - name: coverage
       run: make coverage
     - name: upload coverage
@@ -38,7 +38,7 @@ jobs:
     - name: uname
       run: uname -a
     - name: build
-      run: make app
+      run: make env app
     - name: coverage
       run: make coverage
     - name: upload coverage
