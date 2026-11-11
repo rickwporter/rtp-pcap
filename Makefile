@@ -89,7 +89,7 @@ $(APP): $(COBJS) $(CPPOBJS)
 	$(ECHO) "Linking $@..."
 	$(QUIET)$(LXX) -o $@ $(COBJS) $(CPPOBJS) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-app: env $(APP) ## Build the application
+app: $(APP) ## Build the application
 
 test: ## Run test script
 	./test.sh
