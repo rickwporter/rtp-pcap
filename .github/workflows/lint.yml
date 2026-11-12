@@ -1,0 +1,20 @@
+name: Lint CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: dependencies
+      run: sudo apt install clang-format-21
+    - name: version
+      run: clang-format --version
+    - name: lint
+      run: make check-format
