@@ -14,11 +14,6 @@ using namespace std;
 #define ARG_ODD "--odd"
 #define ARG_ALL "--all"
 
-typedef struct {
-    bool odd;
-    bool all_udp;
-} rtp_pcap_list_args_t;
-
 static const ArgDefList list_options = {
     {ARG_ODD, "", "Include odd # ports in list (default only considers even)"},
     {ARG_ALL, "", "Print all UDP packets (not just suspected RTP)"},
@@ -36,9 +31,7 @@ typedef struct {
 typedef map<uint16_t, stream_counts_t> port_counts_t;
 typedef map<uint32_t, port_counts_t> address_counts_t;
 
-static void rtp_pcap_list(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, rtp_pcap_list_args_t *args) {
-    bool odd = args->odd;
-    bool all_udp = args->all_udp;
+static void rtp_pcap_list(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, bool odd, bool all_udp) {
     map_count_t ssrcs;
     map_count_t addrs;
     map_count_i icount;
@@ -103,11 +96,9 @@ static void rtp_pcap_list(const char *progname, pcap_t *pcap_file, const RtpMap 
 static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_LIST, list_options); }
 
 int run_list(const char *progname, int argc, char *argv[]) {
+    bool odd = false;
+    bool all_udp = false;
     CommonArgs common;
-
-    rtp_pcap_list_args_t args;
-    args.odd = false;
-    args.all_udp = false;
 
     ArgParser parser(argc, argv);
     parser.skip_action(ARG_ACT_LIST);
@@ -129,9 +120,9 @@ int run_list(const char *progname, int argc, char *argv[]) {
         }
 
         if (parser.is(ARG_ODD)) {
-            args.odd = true;
+            odd = true;
         } else if (parser.is(ARG_ALL)) {
-            args.all_udp = true;
+            all_udp = true;
         } else {
             snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
             break;
@@ -161,7 +152,7 @@ int run_list(const char *progname, int argc, char *argv[]) {
 
     rtp_pcap_filter_t filter;
     common.init_filter(filter);
-    rtp_pcap_list(progname, pcap_file, common.rtpmap, &filter, &args);
+    rtp_pcap_list(progname, pcap_file, common.rtpmap, &filter, odd, all_udp);
     pcap_close(pcap_file);
     return 0;
 }
