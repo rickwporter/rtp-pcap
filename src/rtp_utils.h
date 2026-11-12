@@ -5,6 +5,7 @@
 
 #include "rtp_types.h" // where rtphdr_t and rtp_event_t are defined
 #include <arpa/inet.h> // for ntohl() and ntohs()
+#include <cstring>     // for memset()
 #include <stdint.h>
 
 #define RFC_1889_VERSION 2

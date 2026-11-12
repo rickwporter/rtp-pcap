@@ -29,7 +29,15 @@ APP                 := rtp-pcap
 
 CSRCS               := hexutils.c
 CSRCS               += base64.c
-CPPSRCS             := rtp_pcap.cpp
+CPPSRCS             := arguments.cpp
+CPPSRCS             += packet_utilities.cpp
+CPPSRCS             += time_utilities.cpp
+CPPSRCS             += rtp_pcap.cpp
+CPPSRCS             += action_summary.cpp
+CPPSRCS             += action_details.cpp
+CPPSRCS             += action_list.cpp
+CPPSRCS             += action_stats.cpp
+CPPSRCS             += action_srtp.cpp
 
 COBJS      = $(patsubst %.c,$(OBJ_DIR)/%.o,$(CSRCS))
 CPPOBJS    = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(CPPSRCS))

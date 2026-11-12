@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 /*******************************************/
 /** RTP and RTP-EVENT (RFC-2833) structure definitions **/
 /*******************************************/
