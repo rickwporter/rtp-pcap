@@ -105,7 +105,7 @@ $(APP): $(COBJS) $(CPPOBJS)
 app: $(APP) ## Build the application
 
 test: ## Run test script
-	./test.sh
+	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./test.sh
 
 app-clean: ## Cleanup the application
 	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(APP)
