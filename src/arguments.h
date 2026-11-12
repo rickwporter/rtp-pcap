@@ -51,6 +51,7 @@ class RtpMap : public std::map<uint8_t, std::string> {
   public:
     RtpMap();
 
+    void parse(const char *arg);
     const char *get_string(uint8_t payload_type) const;
 };
 
@@ -121,7 +122,6 @@ class ArgParser {
     const char *action_;
 };
 
-void rtp_pcap_rtpmap_parse_arg(RtpMap &map, const char *arg);
 time_display_t rtp_pcap_time_display_parse(const char *arg);
 
 bool rtp_pcap_arg_is_help(const char *arg);

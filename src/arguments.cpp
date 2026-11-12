@@ -53,7 +53,7 @@ const char *RtpMap::get_string(uint8_t payload_type) const {
     return "unknown";
 }
 
-void rtp_pcap_rtpmap_parse_arg(RtpMap &map, const char *arg) {
+void RtpMap::parse(const char *arg) {
     if (arg == NULL) {
         return;
     }
@@ -72,7 +72,7 @@ void rtp_pcap_rtpmap_parse_arg(RtpMap &map, const char *arg) {
         }
 
         string text = astr.substr(pos1 + 1, pos2 - pos1 - 1);
-        map[ptype] = text;
+        (*this)[ptype] = text;
         pos = pos2 + 1;
     }
 }
@@ -238,7 +238,7 @@ rtp_pcap_parse_result_t rtp_pcap_parse_common_arg(ArgParser &parser, CommonArgs 
         if (value == NULL) {
             return parse_error;
         }
-        rtp_pcap_rtpmap_parse_arg(args.rtpmap, value);
+        args.rtpmap.parse(value);
         return parse_ok;
     }
 
