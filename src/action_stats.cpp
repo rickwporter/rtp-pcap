@@ -18,10 +18,6 @@ using namespace std;
 #define ARG_TIME "--time"
 #define AFMT_TIME "<none|previous|capture|timeofday|date>"
 
-typedef struct {
-    time_display_t time_type;
-} rtp_pcap_stats_args_t;
-
 static const ArgDefList stats_options = {
     {ARG_TIME, AFMT_TIME, "Time display format (default=capture)"},
 };
@@ -94,8 +90,7 @@ class StreamStats {
 
 typedef map<uint32_t, StreamStats *> StreamStatMap;
 
-static void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *filter, rtp_pcap_stats_args_t *args) {
-    time_display_t time_type = args->time_type;
+static void rtp_pcap_stats(pcap_t *pcap_file, rtp_pcap_filter_t *filter, time_display_t time_type) {
     uint32_t stream_pkt_count = 0;
     uint32_t total_pkt_count = 0;
     struct timeval last_clock;
@@ -230,10 +225,8 @@ static void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_fil
 static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_STATS, stats_options); }
 
 int run_stats(const char *progname, int argc, char *argv[]) {
+    time_display_t time_type = tdisp_startcapture;
     CommonArgs common;
-
-    rtp_pcap_stats_args_t args;
-    args.time_type = tdisp_startcapture;
 
     ArgParser parser(argc, argv);
     parser.skip_action(ARG_ACT_STATS);
@@ -259,7 +252,7 @@ int run_stats(const char *progname, int argc, char *argv[]) {
             if (value == NULL) {
                 break;
             }
-            args.time_type = rtp_pcap_time_display_parse(value);
+            time_type = rtp_pcap_time_display_parse(value);
         } else {
             snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
             break;
@@ -289,7 +282,7 @@ int run_stats(const char *progname, int argc, char *argv[]) {
 
     rtp_pcap_filter_t filter;
     common.init_filter(filter);
-    rtp_pcap_stats(progname, pcap_file, &filter, &args);
+    rtp_pcap_stats(pcap_file, &filter, time_type);
     pcap_close(pcap_file);
     return 0;
 }
