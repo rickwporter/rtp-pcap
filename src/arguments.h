@@ -49,6 +49,8 @@ typedef struct {
 // Payload type to codec name. Unknown types report "unknown".
 class RtpMap : public std::map<uint8_t, std::string> {
   public:
+    RtpMap();
+
     const char *get_string(uint8_t payload_type) const;
 };
 

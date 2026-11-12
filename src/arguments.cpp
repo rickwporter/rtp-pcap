@@ -12,6 +12,38 @@
 
 using namespace std;
 
+RtpMap::RtpMap() {
+    // initialize with the well-known codecs
+    (*this)[0] = "pcmu";
+    (*this)[3] = "gsm";
+    (*this)[4] = "g723";
+    (*this)[5] = "dvi4";
+    (*this)[6] = "dvi4";
+    (*this)[7] = "lpc";
+    (*this)[8] = "pcma";
+    (*this)[9] = "g722";
+    (*this)[10] = "l16";
+    (*this)[11] = "l16";
+    (*this)[12] = "qcelp";
+    (*this)[13] = "cn";
+    (*this)[14] = "mpa";
+    (*this)[15] = "g728";
+    (*this)[18] = "g729";
+    (*this)[25] = "celb";
+    (*this)[26] = "jpeg";
+    (*this)[28] = "nv";
+    (*this)[31] = "h261";
+    (*this)[32] = "mpv";
+    (*this)[33] = "mp2t";
+    (*this)[34] = "h263";
+    (*this)[72] = "rtcp";
+    (*this)[73] = "rtcp";
+    (*this)[74] = "rtcp";
+    (*this)[75] = "rtcp";
+    (*this)[76] = "rtcp";
+    (*this)[RTP_PTYPE_DTMF_DEFAULT] = "telephone-events";
+}
+
 const char *RtpMap::get_string(uint8_t payload_type) const {
     const_iterator iMap = find(payload_type);
     if (iMap != end()) {
@@ -128,37 +160,7 @@ const char *ArgParser::require(const char *option, char *error, size_t error_siz
     return next;
 }
 
-CommonArgs::CommonArgs() : src_filter(false), is_help(true) {
-    // initialize with the well-known codecs
-    rtpmap[0] = "pcmu";
-    rtpmap[3] = "gsm";
-    rtpmap[4] = "g723";
-    rtpmap[5] = "dvi4";
-    rtpmap[6] = "dvi4";
-    rtpmap[7] = "lpc";
-    rtpmap[8] = "pcma";
-    rtpmap[9] = "g722";
-    rtpmap[10] = "l16";
-    rtpmap[11] = "l16";
-    rtpmap[12] = "qcelp";
-    rtpmap[13] = "cn";
-    rtpmap[14] = "mpa";
-    rtpmap[15] = "g728";
-    rtpmap[18] = "g729";
-    rtpmap[25] = "celb";
-    rtpmap[26] = "jpeg";
-    rtpmap[28] = "nv";
-    rtpmap[31] = "h261";
-    rtpmap[32] = "mpv";
-    rtpmap[33] = "mp2t";
-    rtpmap[34] = "h263";
-    rtpmap[72] = "rtcp";
-    rtpmap[73] = "rtcp";
-    rtpmap[74] = "rtcp";
-    rtpmap[75] = "rtcp";
-    rtpmap[76] = "rtcp";
-    rtpmap[RTP_PTYPE_DTMF_DEFAULT] = "telephone-events";
-}
+CommonArgs::CommonArgs() : src_filter(false), is_help(true) {}
 
 void CommonArgs::init_filter(rtp_pcap_filter_t &filter) const {
     memset(&filter, 0, sizeof(filter));
