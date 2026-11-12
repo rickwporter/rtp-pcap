@@ -12,48 +12,16 @@
 
 using namespace std;
 
-void rtp_pcap_rtpmap_init(rtpmap_t &map) {
-    // initialize with the well-known codecs
-    map[0] = "pcmu";
-    map[3] = "gsm";
-    map[4] = "g723";
-    map[5] = "dvi4";
-    map[6] = "dvi4";
-    map[7] = "lpc";
-    map[8] = "pcma";
-    map[9] = "g722";
-    map[10] = "l16";
-    map[11] = "l16";
-    map[12] = "qcelp";
-    map[13] = "cn";
-    map[14] = "mpa";
-    map[15] = "g728";
-    map[18] = "g729";
-    map[25] = "celb";
-    map[26] = "jpeg";
-    map[28] = "nv";
-    map[31] = "h261";
-    map[32] = "mpv";
-    map[33] = "mp2t";
-    map[34] = "h263";
-    map[72] = "rtcp";
-    map[73] = "rtcp";
-    map[74] = "rtcp";
-    map[75] = "rtcp";
-    map[76] = "rtcp";
-    map[RTP_PTYPE_DTMF_DEFAULT] = "telephone-events";
-}
-
-const char *rtp_pcap_rtpmap_get_string(const rtpmap_t &map, uint8_t payload_type) {
-    rtpmap_t::const_iterator iMap = map.find(payload_type);
-    if (iMap != map.end()) {
+const char *RtpMap::get_string(uint8_t payload_type) const {
+    const_iterator iMap = find(payload_type);
+    if (iMap != end()) {
         return iMap->second.c_str();
     }
 
     return "unknown";
 }
 
-void rtp_pcap_rtpmap_parse_arg(rtpmap_t &map, const char *arg) {
+void rtp_pcap_rtpmap_parse_arg(RtpMap &map, const char *arg) {
     if (arg == NULL) {
         return;
     }
@@ -160,7 +128,37 @@ const char *ArgParser::require(const char *option, char *error, size_t error_siz
     return next;
 }
 
-CommonArgs::CommonArgs() : src_filter(false), is_help(true) { rtp_pcap_rtpmap_init(rtpmap); }
+CommonArgs::CommonArgs() : src_filter(false), is_help(true) {
+    // initialize with the well-known codecs
+    rtpmap[0] = "pcmu";
+    rtpmap[3] = "gsm";
+    rtpmap[4] = "g723";
+    rtpmap[5] = "dvi4";
+    rtpmap[6] = "dvi4";
+    rtpmap[7] = "lpc";
+    rtpmap[8] = "pcma";
+    rtpmap[9] = "g722";
+    rtpmap[10] = "l16";
+    rtpmap[11] = "l16";
+    rtpmap[12] = "qcelp";
+    rtpmap[13] = "cn";
+    rtpmap[14] = "mpa";
+    rtpmap[15] = "g728";
+    rtpmap[18] = "g729";
+    rtpmap[25] = "celb";
+    rtpmap[26] = "jpeg";
+    rtpmap[28] = "nv";
+    rtpmap[31] = "h261";
+    rtpmap[32] = "mpv";
+    rtpmap[33] = "mp2t";
+    rtpmap[34] = "h263";
+    rtpmap[72] = "rtcp";
+    rtpmap[73] = "rtcp";
+    rtpmap[74] = "rtcp";
+    rtpmap[75] = "rtcp";
+    rtpmap[76] = "rtcp";
+    rtpmap[RTP_PTYPE_DTMF_DEFAULT] = "telephone-events";
+}
 
 void CommonArgs::init_filter(rtp_pcap_filter_t &filter) const {
     memset(&filter, 0, sizeof(filter));
