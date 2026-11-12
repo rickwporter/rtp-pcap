@@ -11,6 +11,7 @@
 #endif // INCLUDE_SRTP
 
 #include "action_srtp.h"
+#include "arguments.h"
 #include "base64.h"
 #include "hexutils.h"
 #include "packet_utilities.h"
@@ -19,9 +20,48 @@
 using namespace std;
 
 #if INCLUDE_SRTP
+#define ARG_ALG "--alg"
+#define ARG_KEY "--key"
+#define ARG_OUTPUT "--output"
+#define ARG_FORCE "--force"
+#define ARG_DEBUG "--debug"
+
+#define AFMT_ALG "<aes128-sha1-32|aes128-sha1-80>"
+#define AFMT_KEY "<hex|base64>"
+#define AFMT_OUTPUT "<filename>"
+
+typedef enum {
+    cryptop_none,
+    cryptop_encrypt,
+    cryptop_decrypt,
+} cryptop_t;
+
+typedef enum {
+    srtp_alg_none,
+    srtp_alg_aes128_sha1_32bit,
+    srtp_alg_aes128_sha1_80bit,
+} srtp_algorithm_t;
+
+typedef struct {
+    cryptop_t op;
+    srtp_algorithm_t alg;
+    bool force;
+    bool debug;
+    std::string key;
+    std::string outfile;
+} rtp_pcap_srtp_args_t;
+
+static const ArgDefList srtp_options = {
+    {ARG_ALG, AFMT_ALG, "Cryptographic algorithm suite (default=aes128-sha1-32)"},
+    {ARG_KEY, AFMT_KEY, "Master key in hexidecimal format"},
+    {ARG_OUTPUT, AFMT_OUTPUT, "Output filename (default=output.pcap)"},
+    {ARG_FORCE, "", "Overwrite existing output file"},
+    {ARG_DEBUG, "", "Turn on libSRTP debug"},
+};
+
 typedef map<srtp_err_status_t, int> SrtpErrorMap;
 
-srtp_algorithm_t rtp_pcap_parse_srtp_alg(const char *algstr) {
+static srtp_algorithm_t rtp_pcap_parse_srtp_alg(const char *algstr) {
     if (NULL == algstr) {
         return srtp_alg_none;
     }
@@ -154,7 +194,7 @@ void error_inc(SrtpErrorMap &map, srtp_err_status_t error, int inc_value = 1) {
     map[error] = count + inc_value;
 }
 
-void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, rtp_pcap_srtp_args_t *args) {
+static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, rtp_pcap_srtp_args_t *args) {
     struct stat mystat;
     pcap_t *output;
     pcap_dumper_t *dumper;
@@ -337,4 +377,106 @@ void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filte
     pcap_dump_close(dumper);
     pcap_close(output);
 }
+
+static void usage(const char *progname, const char *action) { rtp_pcap_action_usage(progname, action, srtp_options); }
+
+static int run_srtp_action(const char *progname, int argc, char *argv[], const char *action, cryptop_t op) {
+    CommonArgs common;
+
+    rtp_pcap_srtp_args_t args;
+    args.op = op;
+    args.alg = srtp_alg_aes128_sha1_32bit;
+    args.force = false;
+    args.debug = false;
+    args.key = "";
+    args.outfile = "output.pcap";
+
+    ArgParser parser(argc, argv);
+    parser.skip_action(action);
+
+    char error[256];
+    error[0] = '\0';
+
+    while (parser.next()) {
+        common.is_help = false;
+        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
+        if (parsed == parse_help) {
+            break;
+        }
+        if (parsed == parse_error) {
+            break;
+        }
+        if (parsed == parse_ok) {
+            continue;
+        }
+
+        if (parser.is(ARG_ALG)) {
+            const char *value = parser.require(ARG_ALG, error, sizeof(error));
+            if (value == NULL) {
+                break;
+            }
+            args.alg = rtp_pcap_parse_srtp_alg(value);
+            if (args.alg == srtp_alg_none) {
+                snprintf(error, sizeof(error), "invalid algorithm '%s'", value);
+                break;
+            }
+        } else if (parser.is(ARG_KEY)) {
+            const char *value = parser.require(ARG_KEY, error, sizeof(error));
+            if (value == NULL) {
+                break;
+            }
+            args.key = value;
+        } else if (parser.is(ARG_OUTPUT)) {
+            const char *value = parser.require(ARG_OUTPUT, error, sizeof(error));
+            if (value == NULL) {
+                break;
+            }
+            args.outfile = value;
+        } else if (parser.is(ARG_FORCE)) {
+            args.force = true;
+        } else if (parser.is(ARG_DEBUG)) {
+            args.debug = true;
+        } else {
+            snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
+            break;
+        }
+    }
+
+    if (common.is_help) {
+        usage(progname, action);
+        return 0;
+    }
+    if (error[0] != '\0') {
+        usage(progname, action);
+        fprintf(stdout, "\n%s: %s\n", progname, error);
+        return -1;
+    }
+    std::string ready_error = rtp_pcap_args_ready(common);
+    if (!ready_error.empty()) {
+        usage(progname, action);
+        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
+        return -1;
+    }
+
+    if (args.key.length() == 0) {
+        usage(progname, action);
+        fprintf(stdout, "\n%s: no key specified\n", progname);
+        return 1;
+    }
+
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+    if (NULL == pcap_file) {
+        return -2;
+    }
+
+    rtp_pcap_filter_t filter;
+    common.init_filter(filter);
+    rtp_pcap_srtp(progname, pcap_file, &filter, &args);
+    pcap_close(pcap_file);
+    return 0;
+}
+
+int run_encrypt(const char *progname, int argc, char *argv[]) { return run_srtp_action(progname, argc, argv, ARG_ACT_ENCRYPT, cryptop_encrypt); }
+
+int run_decrypt(const char *progname, int argc, char *argv[]) { return run_srtp_action(progname, argc, argv, ARG_ACT_DECRYPT, cryptop_decrypt); }
 #endif // INCLUDE_SRTP

@@ -5,6 +5,7 @@
 #include <pcap/pcap.h>
 
 #include "action_summary.h"
+#include "arguments.h"
 #include "packet_utilities.h"
 #include "rtp_utils.h"
 
@@ -13,7 +14,7 @@ using namespace std;
 typedef std::map<uint32_t, uint32_t> map_count_t;
 typedef map_count_t::iterator map_count_i;
 
-void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpmap, rtp_pcap_filter_t *filter) {
+static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpmap, rtp_pcap_filter_t *filter) {
     map_count_t ssrcs;
     map_count_t codecs;
     map_count_i icount;
@@ -70,4 +71,60 @@ void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &r
     for (icount = codecs.begin(); icount != codecs.end(); icount++) {
         fprintf(stdout, "    %s (%u) : %u\n", rtp_pcap_rtpmap_get_string(rtpmap, icount->first), icount->first, icount->second);
     }
+}
+
+static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_SUMMARY, ArgDefList()); }
+
+int run_summary(const char *progname, int argc, char *argv[]) {
+    CommonArgs common;
+
+    ArgParser parser(argc, argv);
+    parser.skip_action(ARG_ACT_SUMMARY);
+
+    char error[256];
+    error[0] = '\0';
+
+    while (parser.next()) {
+        common.is_help = false;
+        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
+        if (parsed == parse_help) {
+            break;
+        }
+        if (parsed == parse_error) {
+            break;
+        }
+        if (parsed == parse_ok) {
+            continue;
+        }
+
+        snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
+        break;
+    }
+
+    if (common.is_help) {
+        usage(progname);
+        return 0;
+    }
+    if (error[0] != '\0') {
+        usage(progname);
+        fprintf(stdout, "\n%s: %s\n", progname, error);
+        return -1;
+    }
+    std::string ready_error = rtp_pcap_args_ready(common);
+    if (!ready_error.empty()) {
+        usage(progname);
+        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
+        return -1;
+    }
+
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+    if (NULL == pcap_file) {
+        return -2;
+    }
+
+    rtp_pcap_filter_t filter;
+    common.init_filter(filter);
+    rtp_pcap_summary(progname, pcap_file, common.rtpmap, &filter);
+    pcap_close(pcap_file);
+    return 0;
 }
