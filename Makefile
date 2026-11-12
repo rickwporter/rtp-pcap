@@ -8,9 +8,14 @@ CC                  := gcc
 CXX                 := g++
 LXX                 := g++
 INCLUDE_SRTP        ?= 1
+COVERAGE            ?= 0
 CFLAGS              := -O0 -Wall -Werror -ggdb -DINCLUDE_SRTP=$(INCLUDE_SRTP)
 LDFLAGS             := -Bstatic
 
+ifneq ("$(COVERAGE)", "0")
+CFLAGS              += --coverage -fprofile-arcs
+LDFLAGS             += --coverage
+endif
 EXTRA_CFLAGS        ?= 
 EXTRA_LDFLAGS       ?=
 
@@ -21,8 +26,6 @@ endif
 
 OBJ_DIR             ?= objs
 COVERAGE_OBJ_DIR    ?= objs-cov
-COVERAGE_DIR        ?= coverage
-GCOV                ?= gcov
 SRC_DIR             := src
 SEPARATOR           := "****************************"
 APP                 := rtp-pcap
@@ -59,13 +62,15 @@ env: ## Print select environment variables
 	@echo "SRC_DIR         : $(SRC_DIR)"
 	@echo "OBJ_DIR         : $(OBJ_DIR)"
 	@echo "COVERAGE_OBJ_DIR: $(COVERAGE_OBJ_DIR)"
-	@echo "COVERAGE_DIR    : $(COVERAGE_DIR)"
 	@echo "COBJS           : $(COBJS)"
 	@echo "CPPOBJS         : $(CPPOBJS)"
 	@echo "CFLAGS          : $(CFLAGS)"
 	@echo "EXTRA_CFLAGS    : $(EXTRA_CFLAGS)"
 	@echo "LDFLAGS         : $(LDFLAGS)"
 	@echo "EXTRA_LDFLAGS   : $(EXTRA_LDFLAGS)"
+
+prereq: ## Install prerequisites (e.g. gcovr)
+	pip3 install gcovr
 
 clean: app-clean ## Cleanup application files
 
@@ -103,26 +108,19 @@ test: ## Run test script
 	./test.sh
 
 app-clean: ## Cleanup the application
-	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
-	rm -f *.gcov
+	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(APP)
 
 ###############################
 ##@ Coverage
 .PHONY: test coverage coverage-report
 
 coverage: ## Build with coverage, run tests, and report
-	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
-	rm -f *.gcov
-	$(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR) CFLAGS="$(CFLAGS) --coverage" LDFLAGS="$(LDFLAGS) --coverage"
+	rm -rf $(COVERAGE_OBJ_DIR) $(APP)
+	COVERAGE=1 $(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR)
 	$(MAKE) test; status=$$?; \
 	$(MAKE) coverage-report; report=$$?; \
 	if [ $$status -ne 0 ]; then exit $$status; fi; \
 	exit $$report
 
 coverage-report: ## Summarize coverage from the latest instrumented test run
-	$(ECHO) $(SEPARATOR)
-	$(ECHO) "Coverage report: $(COVERAGE_DIR)/summary.txt"
-	$(QUIET)mkdir -p $(COVERAGE_DIR)
-	$(QUIET)rm -f *.gcov
-	$(QUIET)LC_ALL=C $(GCOV) -b -r -p -o $(COVERAGE_OBJ_DIR) $(addprefix $(SRC_DIR)/,$(CSRCS) $(CPPSRCS)) > $(COVERAGE_DIR)/gcov.txt
-	cat $(COVERAGE_DIR)/gcov.txt
+	python3 -m gcovr
