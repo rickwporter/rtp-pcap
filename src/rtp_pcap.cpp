@@ -3,7 +3,6 @@
 #include <string.h>    // for memset()
 #include <string>
 #include <strings.h> // for strcasecmp()
-#include <sys/stat.h>
 
 #include <pcap/pcap.h>
 
@@ -13,6 +12,7 @@
 #include "action_stats.h"
 #include "action_summary.h"
 #include "arguments.h"
+#include "packet_utilities.h"
 
 using namespace std;
 
@@ -147,11 +147,9 @@ int main(int argc, char *argv[]) {
     char *filename = NULL;
     char default_action[] = ARG_ACT_SUMMARY; // default to summary
     char *action = default_action;
-    char error_buf[512];
     char *tmp;
     char *addr = NULL;
     char *port = NULL;
-    struct stat mystat;
     rtp_pcap_filter_t filter;
     rtpmap_t rtpmap;
     pcap_t *pcap_file;
@@ -299,15 +297,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    if (0 != stat(filename, &mystat)) {
-        fprintf(stdout, "\n%s: missing file=%s\n", progname, filename);
-        return -2;
-    }
-
-    pcap_file = pcap_open_offline(filename, error_buf);
+    pcap_file = rtp_pcap_open_input(progname, filename);
     if (NULL == pcap_file) {
-        fprintf(stdout, "\n%s: failed to open PCAP=%s: %s\n", progname, filename, error_buf);
-        return -3;
+        return -2;
     }
 
     if (0 == strcasecmp(action, ARG_ACT_SUMMARY)) {
