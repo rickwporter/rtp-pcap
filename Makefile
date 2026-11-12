@@ -26,6 +26,8 @@ endif
 
 OBJ_DIR             ?= objs
 COVERAGE_OBJ_DIR    ?= objs-cov
+COVERAGE_DIR        ?= coverage
+COVERAGE_INDEX      := $(COVERAGE_DIR)/index.html
 SRC_DIR             := src
 SEPARATOR           := "****************************"
 APP                 := rtp-pcap
@@ -68,6 +70,8 @@ env: ## Print select environment variables
 	@echo "EXTRA_CFLAGS    : $(EXTRA_CFLAGS)"
 	@echo "LDFLAGS         : $(LDFLAGS)"
 	@echo "EXTRA_LDFLAGS   : $(EXTRA_LDFLAGS)"
+	@echo "COVERAGE_DIR    : $(COVERAGE_DIR)"
+	@echo "COVERAGE_INDEX  : $(COVERAGE_INDEX)"
 
 prereq: ## Install prerequisites (e.g. gcovr)
 	pip3 install gcovr
@@ -108,14 +112,14 @@ test: ## Run test script
 	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./test.sh
 
 app-clean: ## Cleanup the application
-	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(APP)
+	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
 
 ###############################
 ##@ Coverage
 .PHONY: test coverage coverage-report
 
 coverage: ## Build with coverage, run tests, and report
-	rm -rf $(COVERAGE_OBJ_DIR) $(APP)
+	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
 	COVERAGE=1 $(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR)
 	$(MAKE) test; status=$$?; \
 	$(MAKE) coverage-report; report=$$?; \
@@ -124,3 +128,7 @@ coverage: ## Build with coverage, run tests, and report
 
 coverage-report: ## Summarize coverage from the latest instrumented test run
 	python3 -m gcovr
+	rm -rf $(COVERAGE_DIR)
+	mkdir -p $(COVERAGE_DIR)
+	python3 -m gcovr --html-details $(COVERAGE_INDEX)
+	$(ECHO) "Full details avalable at $(COVERAGE_INDEX)"
