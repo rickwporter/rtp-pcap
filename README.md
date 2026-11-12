@@ -11,40 +11,36 @@ $ ./rtp-pcap --help
 
 rtp-pcap usage:
 
-  rtp-pcap <action> --file <file> [arguments]
+  rtp-pcap <action> [arguments]
 
   Actions             
           list : List all RTP streams
        summary : Summarize the RTP stream
        details : Provide RTP packet details
+         stats : Provide RTP packet statistics for a stream
        encrypt : Encrypt single RTP stream to another PCAP
        decrypt : Decrypt single RTP stream to another PCAP
 
-  Common arguments    
+  Use "rtp-pcap <action> --help" for action argument info.
+
+$ ./rtp-pcap details --help
+
+rtp-pcap details usage:
+
+  rtp-pcap details [arguments]
+
+  Arguments           
       --file  <file>  : PCAP file
       --filter <dst|src>: Flag to filter on source/destination IP/UDP (default dst)
       --ip    <addr>  : Source/destination IP address
       --port  <num>   : Source/destination UDP port
       --rtpmap <num=string[:num=string[...]]>: RTP payload type to string values
-      --help          : This message
-
-  list arguments      
-      --odd           : Include odd # ports in list (default only considers even)
-      --all           : Print all UDP packets (not just suspected RTP)
-
-  details arguments   
       --all           : Print all packets in stream
       --quiet         : Do NOT provide analysis comments on stream
       --index <pcap|stream>: Index type (default is stream)
       --time  <none|previous|capture|timeofday|date>: Time display format (default=none)
       --dtmf  <num>   : RTP payload type for DTMF decodes (default=101)
-
-  SRTP encrypt/decrypt arguments
-      --alg   <aes128-sha1-32|aes128-sha1-80>: Cryptographic algorithm suite (default=aes128-sha1-32)
-      --key   <hex|base64>: Master key in hexidecimal format
-      --output <filename>: Output filename (default=output.pcap)
-      --force         : Overwrite existing output file
-      --debug         : Turn on libSRTP debug
+      --help          : This message
 
 $
 ```

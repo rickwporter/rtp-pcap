@@ -13,6 +13,7 @@ check_substring() {
     else
         echo "FAIL: $description does not contain expected output"
         echo "actual:\n$actual"
+        echo "expected:\n$expected"
         TEST_RESULT+=1
     fi
 }
@@ -30,9 +31,9 @@ check_result() {
 
 #################################################
 # Basic help
-HELP_START="  rtp-pcap <action> --file <file> [arguments]
+HELP_START="  rtp-pcap <action> [arguments]
 
-  Actions             
+  Actions
           list : List all RTP streams
        summary : Summarize the RTP stream
        details : Provide RTP packet details
@@ -45,6 +46,37 @@ result=$?
 
 check_result "Basic help" 0 $result
 check_substring "Basic help" "$HELP_START" "$output"
+
+#################################################
+# Action help
+DETAILS_HELP="rtp-pcap details usage:
+
+  rtp-pcap details [arguments]
+
+  Arguments
+      --file  <file>  : PCAP file
+      --filter <dst|src>: Flag to filter on source/destination IP/UDP (default dst)
+      --ip    <addr>  : Source/destination IP address
+      --port  <num>   : Source/destination UDP port
+      --rtpmap <num=string[:num=string[...]]>: RTP payload type to string values
+      --all           : Print all packets in stream
+      --quiet         : Do NOT provide analysis comments on stream
+      --index <pcap|stream>: Index type (default is stream)
+      --time  <none|previous|capture|timeofday|date>: Time display format (default=none)
+      --dtmf  <num>   : RTP payload type for DTMF decodes (default=101)
+      --help          : This message"
+
+output=$($APP details 2>&1)
+result=$?
+
+check_result "Details help (no args)" 0 $result
+check_substring "Details help (no args)" "$DETAILS_HELP" "$output"
+
+output=$($APP details --not-an-arg 2>&1)
+result=$?
+
+check_result "Details invalid argument" 255 $result
+check_substring "Details invalid argument" "invalid argument '--not-an-arg'" "$output"
 
 
 #################################################

@@ -1,7 +1,3 @@
 #pragma once
 
-#include <pcap/pcap.h>
-
-#include "arguments.h"
-
-void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpmap, rtp_pcap_filter_t *filter);
+int run_summary(const char *progname, int argc, char *argv[]);

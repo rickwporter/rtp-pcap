@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <arpa/inet.h> // for inet_ntoa()
+#include <cstdio>
 #include <cstdlib>
 #include <cstring> // for memset()
 #include <netinet/in.h>
@@ -7,11 +8,23 @@
 #include <pcap/pcap.h>
 
 #include "action_stats.h"
+#include "arguments.h"
 #include "packet_utilities.h"
 #include "rtp_utils.h"
 #include "time_utilities.h"
 
 using namespace std;
+
+#define ARG_TIME "--time"
+#define AFMT_TIME "<none|previous|capture|timeofday|date>"
+
+typedef struct {
+    time_display_t time_type;
+} rtp_pcap_stats_args_t;
+
+static const ArgDefList stats_options = {
+    {ARG_TIME, AFMT_TIME, "Time display format (default=capture)"},
+};
 
 class StreamStats {
   private:
@@ -81,7 +94,7 @@ class StreamStats {
 
 typedef map<uint32_t, StreamStats *> StreamStatMap;
 
-void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *filter, rtp_pcap_stats_args_t *args) {
+static void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *filter, rtp_pcap_stats_args_t *args) {
     time_display_t time_type = args->time_type;
     uint32_t stream_pkt_count = 0;
     uint32_t total_pkt_count = 0;
@@ -212,4 +225,71 @@ void rtp_pcap_stats(const char *progname, pcap_t *pcap_file, rtp_pcap_filter_t *
     }
 
     return;
+}
+
+static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_STATS, stats_options); }
+
+int run_stats(const char *progname, int argc, char *argv[]) {
+    CommonArgs common;
+
+    rtp_pcap_stats_args_t args;
+    args.time_type = tdisp_startcapture;
+
+    ArgParser parser(argc, argv);
+    parser.skip_action(ARG_ACT_STATS);
+
+    char error[256];
+    error[0] = '\0';
+
+    while (parser.next()) {
+        common.is_help = false;
+        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
+        if (parsed == parse_help) {
+            break;
+        }
+        if (parsed == parse_error) {
+            break;
+        }
+        if (parsed == parse_ok) {
+            continue;
+        }
+
+        if (parser.is(ARG_TIME)) {
+            const char *value = parser.require(ARG_TIME, error, sizeof(error));
+            if (value == NULL) {
+                break;
+            }
+            args.time_type = rtp_pcap_time_display_parse(value);
+        } else {
+            snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
+            break;
+        }
+    }
+
+    if (common.is_help) {
+        usage(progname);
+        return 0;
+    }
+    if (error[0] != '\0') {
+        usage(progname);
+        fprintf(stdout, "\n%s: %s\n", progname, error);
+        return -1;
+    }
+    std::string ready_error = rtp_pcap_args_ready(common);
+    if (!ready_error.empty()) {
+        usage(progname);
+        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
+        return -1;
+    }
+
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+    if (NULL == pcap_file) {
+        return -2;
+    }
+
+    rtp_pcap_filter_t filter;
+    common.init_filter(filter);
+    rtp_pcap_stats(progname, pcap_file, &filter, &args);
+    pcap_close(pcap_file);
+    return 0;
 }
