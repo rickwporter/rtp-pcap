@@ -24,3 +24,6 @@ typedef struct {
 void rtp_pcap_iph_byteswap(iphdr_t *iph);
 void rtp_pcap_udph_byteswap(udphdr_t *udph);
 int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pcap_filter_t *filter, rtp_pcap_pkt_t *pkt);
+
+// Opens filename for offline reading. On failure prints a message and returns NULL.
+pcap_t *rtp_pcap_open_input(const char *progname, const char *filename);

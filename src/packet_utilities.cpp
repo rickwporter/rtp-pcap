@@ -1,6 +1,8 @@
 #include <arpa/inet.h>  // for ntohs()
 #include <netinet/in.h> // for IPPROTO_UDP
+#include <stdio.h>      // for fprintf()
 #include <string.h>     // for memset(), memcpy()
+#include <sys/stat.h>
 
 #include "packet_utilities.h"
 
@@ -119,4 +121,22 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
     } // while
 
     return -1;
+}
+
+pcap_t *rtp_pcap_open_input(const char *progname, const char *filename) {
+    struct stat mystat;
+    char error_buf[PCAP_ERRBUF_SIZE];
+
+    if (0 != stat(filename, &mystat)) {
+        fprintf(stdout, "\n%s: missing file=%s\n", progname, filename);
+        return NULL;
+    }
+
+    pcap_t *pcap_file = pcap_open_offline(filename, error_buf);
+    if (NULL == pcap_file) {
+        fprintf(stdout, "\n%s: failed to open PCAP=%s: %s\n", progname, filename, error_buf);
+        return NULL;
+    }
+
+    return pcap_file;
 }
