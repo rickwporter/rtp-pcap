@@ -48,6 +48,11 @@ SUBCOMMANDS:
 "
 # NOTE: SRTP actions deliberately excluded. Help spacing comes from CLI11.
 
+output=$($APP 2>&1)
+result=$?
+check_result "No args help" 0 $result
+check_substring "No args help" "$HELP_START" "$output"
+
 output=$($APP --help 2>&1)
 result=$?
 
@@ -94,6 +99,8 @@ result=$?
 check_result "Details help (no args)" 0 $result
 check_substring "Details help (no args)" "$DETAILS_HELP" "$output"
 
+#################################################
+# Details errors
 output=$($APP details --port 1 2>&1)
 result=$?
 
@@ -310,6 +317,22 @@ check_result "DTMF details missed" 0 $result
 check_substring "DTMF details missed" "$DTMF_DETAIS_MISSED" "$output"
 
 #################################################
+# Stats corner cases
+
+output=$($APP stats $EXAMPLES/no-such-file.pcap 2>&1)
+result=$?
+
+check_result "Stats missing file" 254 $result
+check_substring "Stats missing file" "missing file=examples/no-such-file.pcap" "$output"
+
+output=$($APP stats --ip 10.10.10.10 $EXAMPLES/sip-rtp-g726.pcap 2>&1)
+result=$?
+
+check_result "Stats none" 0 $result
+check_substring "Stats none" "No matching RTP packets found." "$output"
+
+
+#################################################
 # G726 stats
 
 G726_STATS="  0x043FFA6E:
@@ -368,6 +391,26 @@ result=$?
 
 check_result "DTMF stats missed" 0 $result
 check_substring "DTMF stats missed" "$DTMF_STATS_MISSED" "$output"
+
+DTMF_STATS_SOURCE="IP source: 192.168.105.110:4374, 665 packets (1360 in capture)
+  0x9A7B5382:
+      start-time: 76.829
+        end-time: 96.810
+        duration: 19.981 seconds
+         packets: 665
+            lost: 2
+      misordered: 0
+           jumps: 0
+      pt changes: 0
+           delta:
+                min: 29.902 msecs
+               mean: 30.001 msecs
+                max: 30.097 msecs"
+output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --filter src 2>&1)
+result=$?
+
+check_result "DTMF stats src" 0 $result
+check_substring "DTMF stats src" "$DTMF_STATS_SOURCE" "$output"
 
 
 #################################################
