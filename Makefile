@@ -123,15 +123,14 @@ app-clean: ## Cleanup the application
 
 ###############################
 ##@ Coverage
-.PHONY: test coverage coverage-report
+.PHONY: test coverage coverage-run coverage-report
 
 coverage: ## Build with coverage, run tests, and report
 	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
 	COVERAGE=1 $(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR)
-	$(MAKE) test; status=$$?; \
-	$(MAKE) coverage-report; report=$$?; \
-	if [ $$status -ne 0 ]; then exit $$status; fi; \
-	exit $$report
+	$(MAKE) coverage-run
+
+coverage-run: test coverage-report ## Run the coverage tests (without rebuild)
 
 coverage-report: ## Summarize coverage from the latest instrumented test run
 	python3 -m gcovr $(GCOVR_FLAGS)
