@@ -22,9 +22,9 @@ char *timeofday(char *buffer, const size_t buflen, const struct timeval *tv) {
     struct tm *nowtm;
     char tmbuf[64];
 
-    nowtm = localtime(&nowtime);
+    nowtm = gmtime(&nowtime);
     strftime(tmbuf, sizeof(tmbuf), "%H:%M:%S", nowtm);
-    snprintf(buffer, buflen, "%s.%03ld", tmbuf, milliseconds(tv));
+    snprintf(buffer, buflen, "%s.%03ld GMT", tmbuf, milliseconds(tv));
     return buffer;
 }
 
@@ -33,8 +33,8 @@ char *datetime(char *buffer, const size_t buflen, const struct timeval *tv) {
     struct tm *nowtm;
     char tmbuf[64];
 
-    nowtm = localtime(&nowtime);
+    nowtm = gmtime(&nowtime);
     strftime(tmbuf, sizeof(tmbuf), "%Y-%m-%d %H:%M:%S", nowtm);
-    snprintf(buffer, buflen, "%s.%03ld", tmbuf, milliseconds(tv));
+    snprintf(buffer, buflen, "%s.%03ld GMT", tmbuf, milliseconds(tv));
     return buffer;
 }

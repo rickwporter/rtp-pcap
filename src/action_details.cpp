@@ -41,25 +41,11 @@ void rtp_pcap_details_time_display(
         snprintf(time_display, display_size, "%6.3f", seconds);
         snprintf(time_dspace, space_size, "   ");
     } else if (time_type == tdisp_timeofday) {
-        struct timeval tv = *pkttime;
-        time_t nowtime = tv.tv_sec;
-        struct tm *nowtm;
-        char tmbuf[64];
-
-        nowtm = localtime(&nowtime);
-        strftime(tmbuf, sizeof(tmbuf), "%H:%M:%S", nowtm);
-        snprintf(time_display, display_size, "%s.%03ld", tmbuf, milliseconds(&tv));
-        snprintf(time_dspace, space_size, "         ");
+        timeofday(time_display, display_size, pkttime);
+        snprintf(time_dspace, space_size, "             ");
     } else if (time_type == tdisp_date) {
-        struct timeval tv = *pkttime;
-        time_t nowtime = tv.tv_sec;
-        struct tm *nowtm;
-        char tmbuf[64];
-
-        nowtm = localtime(&nowtime);
-        strftime(tmbuf, sizeof(tmbuf), "%Y-%m-%d %H:%M:%S", nowtm);
-        snprintf(time_display, display_size, "%s.%03ld", tmbuf, milliseconds(&tv));
-        snprintf(time_dspace, space_size, "                    ");
+        datetime(time_display, display_size, pkttime);
+        snprintf(time_dspace, space_size, "                        ");
     } else {
         time_display[0] = '\0';
         time_dspace[0] = '\0';

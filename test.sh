@@ -157,6 +157,73 @@ result=$?
 check_result "L16 details" 0 $result
 check_substring "L16 details" "$L16_DETAILS" "$output"
 
+L16_PREV="     6      0 Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160, Mark, payload bytes=640
+     7-430     Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
+   430     20 Payload type=l16(99), SSRC=0x043DA974, Seq=20800, Time=68000, payload bytes=640
+***** SSRC changed from 71149940 to 71301644 ******
+   439    131 Payload type=l16(99), SSRC=0x043FFA0C, Seq=50505, Time=320, Mark, payload bytes=1280
+   440-863     Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
+   863     20 Payload type=l16(99), SSRC=0x043FFA0C, Seq=50929, Time=136000, payload bytes=1280
+***** SSRC changed from 71301644 to 71149957 ******
+   872    144 Payload type=l16(99), SSRC=0x043DA985, Seq=14108, Time=256, Mark, payload bytes=512
+   873-1237     Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
+  1237     32 Payload type=l16(99), SSRC=0x043DA985, Seq=14473, Time=93696, payload bytes=512
+***** SSRC changed from 71149957 to 71301665 ******
+  1246    132 Payload type=l16(99), SSRC=0x043FFA21, Seq=50794, Time=960, Mark, payload bytes=1920
+  1247-1670     Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
+  1670     20 Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
+
+output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time previous 2>&1)
+result=$?
+
+check_result "L16 previous" 0 $result
+check_substring "L16 previous" "$L16_PREV" "$output"
+
+L16_TOD="     6 15:03:00.394 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160, Mark, payload bytes=640
+     7-430               Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
+   430 15:03:08.874 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20800, Time=68000, payload bytes=640
+***** SSRC changed from 71149940 to 71301644 ******
+   439 15:03:09.004 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50505, Time=320, Mark, payload bytes=1280
+   440-863               Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
+   863 15:03:17.484 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50929, Time=136000, payload bytes=1280
+***** SSRC changed from 71301644 to 71149957 ******
+   872 15:03:17.629 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14108, Time=256, Mark, payload bytes=512
+   873-1237               Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
+  1237 15:03:29.309 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14473, Time=93696, payload bytes=512
+***** SSRC changed from 71149957 to 71301665 ******
+  1246 15:03:29.441 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=50794, Time=960, Mark, payload bytes=1920
+  1247-1670               Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
+  1670 15:03:37.921 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
+
+output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time timeofday 2>&1)
+result=$?
+
+check_result "L16 timeofday" 0 $result
+check_substring "L16 timeofday" "$L16_TOD" "$output"
+
+
+L16_DATE="     6 2016-11-26 15:03:00.394 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160, Mark, payload bytes=640
+     7-430                          Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
+   430 2016-11-26 15:03:08.874 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20800, Time=68000, payload bytes=640
+***** SSRC changed from 71149940 to 71301644 ******
+   439 2016-11-26 15:03:09.004 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50505, Time=320, Mark, payload bytes=1280
+   440-863                          Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
+   863 2016-11-26 15:03:17.484 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50929, Time=136000, payload bytes=1280
+***** SSRC changed from 71301644 to 71149957 ******
+   872 2016-11-26 15:03:17.629 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14108, Time=256, Mark, payload bytes=512
+   873-1237                          Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
+  1237 2016-11-26 15:03:29.309 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14473, Time=93696, payload bytes=512
+***** SSRC changed from 71149957 to 71301665 ******
+  1246 2016-11-26 15:03:29.441 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=50794, Time=960, Mark, payload bytes=1920
+  1247-1670                          Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
+  1670 2016-11-26 15:03:37.921 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
+
+output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time date 2>&1)
+result=$?
+
+check_result "L16 timeofday" 0 $result
+check_substring "L16 timeofday" "$L16_DATE" "$output"
+
 
 #################################################
 # G726 details
@@ -392,10 +459,10 @@ result=$?
 check_result "DTMF stats missed" 0 $result
 check_substring "DTMF stats missed" "$DTMF_STATS_MISSED" "$output"
 
-DTMF_STATS_SOURCE="IP source: 192.168.105.110:4374, 665 packets (1360 in capture)
+DTMF_STATS_SOURCE_TIME="IP source: 192.168.105.110:4374, 665 packets (1360 in capture)
   0x9A7B5382:
-      start-time: 76.829
-        end-time: 96.810
+      start-time: 12:03:42.159 GMT
+        end-time: 12:04:02.140 GMT
         duration: 19.981 seconds
          packets: 665
             lost: 2
@@ -406,11 +473,32 @@ DTMF_STATS_SOURCE="IP source: 192.168.105.110:4374, 665 packets (1360 in capture
                 min: 29.902 msecs
                mean: 30.001 msecs
                 max: 30.097 msecs"
-output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --filter src 2>&1)
+output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --filter src --time timeofday 2>&1)
 result=$?
 
-check_result "DTMF stats src" 0 $result
-check_substring "DTMF stats src" "$DTMF_STATS_SOURCE" "$output"
+check_result "DTMF stats src/timeofday" 0 $result
+check_substring "DTMF stats src/timeofday" "$DTMF_STATS_SOURCE_TIME" "$output"
+
+
+DTMF_STATS_DATE="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
+  0x9A7B5382:
+      start-time: 2005-09-09 12:03:42.159 GMT
+        end-time: 2005-09-09 12:04:02.140 GMT
+        duration: 19.981 seconds
+         packets: 665
+            lost: 2
+      misordered: 0
+           jumps: 0
+      pt changes: 0
+           delta:
+                min: 29.902 msecs
+               mean: 30.001 msecs
+                max: 30.097 msecs"
+output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --time date 2>&1)
+result=$?
+
+check_result "DTMF stats date" 0 $result
+check_substring "DTMF stats date" "$DTMF_STATS_DATE" "$output"
 
 
 #################################################
