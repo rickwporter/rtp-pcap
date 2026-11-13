@@ -6,9 +6,7 @@
 #include <sys/stat.h>
 
 #include <pcap/pcap.h>
-#if INCLUDE_SRTP
 #include <srtp2/srtp.h>
-#endif // INCLUDE_SRTP
 
 #include "action_srtp.h"
 #include "arguments.h"
@@ -19,7 +17,6 @@
 
 using namespace std;
 
-#if INCLUDE_SRTP
 #define ARG_ALG "--alg"
 #define ARG_KEY "--key"
 #define ARG_OUTPUT "--output"
@@ -41,15 +38,6 @@ typedef enum {
     srtp_alg_aes128_sha1_32bit,
     srtp_alg_aes128_sha1_80bit,
 } srtp_algorithm_t;
-
-typedef struct {
-    cryptop_t op;
-    srtp_algorithm_t alg;
-    bool force;
-    bool debug;
-    std::string key;
-    std::string outfile;
-} rtp_pcap_srtp_args_t;
 
 static const ArgDefList srtp_options = {
     {ARG_ALG, AFMT_ALG, "Cryptographic algorithm suite (default=aes128-sha1-32)"},
@@ -194,7 +182,10 @@ void error_inc(SrtpErrorMap &map, srtp_err_status_t error, int inc_value = 1) {
     map[error] = count + inc_value;
 }
 
-static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, rtp_pcap_srtp_args_t *args) {
+static void rtp_pcap_srtp(
+    const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, cryptop_t op, srtp_algorithm_t alg, bool force, bool debug,
+    const std::string &key, const std::string &outfile
+) {
     struct stat mystat;
     pcap_t *output;
     pcap_dumper_t *dumper;
@@ -216,37 +207,37 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
     memset(&srtp_sess, 0, sizeof(srtp_sess));
     memset(&srtp_policy, 0, sizeof(srtp_policy));
 
-    if (args->alg == srtp_alg_none) {
+    if (alg == srtp_alg_none) {
         fprintf(stdout, "\n%s: invalid algorithm specified!\n", progname);
         return;
     }
 
-    if (args->key.length() == 0) {
+    if (key.length() == 0) {
         fprintf(stdout, "\n%s: no key specified!\n", progname);
         return;
     }
 
-    if (args->key.length() > 128) {
-        fprintf(stdout, "\n%s: key length is too long (%zu)!\n", progname, args->key.length());
+    if (key.length() > 128) {
+        fprintf(stdout, "\n%s: key length is too long (%zu)!\n", progname, key.length());
         return;
     }
 
     // initialize the master key from the hex string
     memset(master_key, 0, sizeof(master_key));
-    key_length = parse_srtp_key(master_key, args->key.c_str());
+    key_length = parse_srtp_key(master_key, key.c_str());
     if (key_length <= 0 || key_length > 32) {
-        fprintf(stdout, "\n%s: invalid key length (%u) for '%s'!\n", progname, key_length, args->key.c_str());
+        fprintf(stdout, "\n%s: invalid key length (%u) for '%s'!\n", progname, key_length, key.c_str());
         return;
     }
 
-    if (args->outfile.length() == 0) {
+    if (outfile.length() == 0) {
         fprintf(stdout, "\n%s: no output file specified!\n", progname);
         return;
     }
 
     // make sure output file does not exist -- don't want to worry about overwriting
-    if (!args->force && 0 == stat(args->outfile.c_str(), &mystat)) {
-        fprintf(stdout, "\n%s: output file (%s) already exists!\n", progname, args->outfile.c_str());
+    if (!force && 0 == stat(outfile.c_str(), &mystat)) {
+        fprintf(stdout, "\n%s: output file (%s) already exists!\n", progname, outfile.c_str());
         return;
     }
 
@@ -259,7 +250,7 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
     srtp_install_log_handler(srtp_log_print, NULL);
 
     // turn on debug before creating/initializing the contexts, so those operations are visible
-    if (args->debug) {
+    if (debug) {
         srtp_set_debug_module("srtp", 1);
         srtp_set_debug_module("cipher", 1);
         srtp_set_debug_module("aes icm", 1);
@@ -269,11 +260,11 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
 
     // initialize the policy that is used to create the context
     srtp_policy.next = NULL;
-    srtp_policy.ssrc.type = (args->op == cryptop_encrypt ? ssrc_any_outbound : ssrc_any_inbound);
+    srtp_policy.ssrc.type = (op == cryptop_encrypt ? ssrc_any_outbound : ssrc_any_inbound);
     srtp_policy.ssrc.value = 0;
     srtp_policy.key = master_key;
     srtp_crypto_policy_set_rtcp_default(&srtp_policy.rtcp);
-    if (args->alg == srtp_alg_aes128_sha1_32bit) {
+    if (alg == srtp_alg_aes128_sha1_32bit) {
         srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32(&srtp_policy.rtp);
     } else {
         srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&srtp_policy.rtp);
@@ -292,9 +283,9 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
         return;
     }
 
-    dumper = pcap_dump_open(output, args->outfile.c_str());
+    dumper = pcap_dump_open(output, outfile.c_str());
     if (NULL == dumper) {
-        fprintf(stdout, "\n%s: unable to open output file (%s)!\n", progname, args->outfile.c_str());
+        fprintf(stdout, "\n%s: unable to open output file (%s)!\n", progname, outfile.c_str());
         return;
     }
 
@@ -319,7 +310,7 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
         stream_pkt_count++;
         rtp_length = orig_length = packet.udph->len - sizeof(udphdr_t);
 
-        if (args->op == cryptop_encrypt) {
+        if (op == cryptop_encrypt) {
             // TODO: distinguish RTP/RTCP
             srtp_status = srtp_protect(srtp_sess, packet.rtph, &rtp_length);
         } else {
@@ -331,7 +322,7 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
             error_inc(errors, srtp_status);
             DEBUG_PRINT(
                 "\n%s of packet[%d] failed: %s (%d)",
-                rtp_pcap_cryptop_string(args->op),
+                rtp_pcap_cryptop_string(op),
                 stream_pkt_count - 1,
                 rtp_pcap_get_srtp_error_string(srtp_status),
                 srtp_status
@@ -360,8 +351,8 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
     } while (1);
 
     fprintf(stdout, "\n");
-    fprintf(stdout, "\n%s: %s results", progname, rtp_pcap_cryptop_string(args->op));
-    fprintf(stdout, "\n    %s key[%d]=%s", rtp_pcap_algorithm_string(args->alg), key_length, bin2hexString(master_key, key_length));
+    fprintf(stdout, "\n%s: %s results", progname, rtp_pcap_cryptop_string(op));
+    fprintf(stdout, "\n    %s key[%d]=%s", rtp_pcap_algorithm_string(alg), key_length, bin2hexString(master_key, key_length));
     if (errors.size()) {
         fprintf(stdout, "\n    %u srtp failures:", srtp_fail_count);
         for (SrtpErrorMap::const_iterator it = errors.begin(); it != errors.end(); it++) {
@@ -370,7 +361,7 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
     } else {
         fprintf(stdout, "\n    No srtp failures");
     }
-    fprintf(stdout, "\n    wrote %u packets to %s", write_pkt_count, args->outfile.c_str());
+    fprintf(stdout, "\n    wrote %u packets to %s", write_pkt_count, outfile.c_str());
     fprintf(stdout, "\n");
 
     srtp_dealloc(srtp_sess);
@@ -381,15 +372,12 @@ static void rtp_pcap_srtp(const char *progname, pcap_t *input, rtp_pcap_filter_t
 static void usage(const char *progname, const char *action) { rtp_pcap_action_usage(progname, action, srtp_options); }
 
 static int run_srtp_action(const char *progname, int argc, char *argv[], const char *action, cryptop_t op) {
+    srtp_algorithm_t alg = srtp_alg_aes128_sha1_32bit;
+    bool force = false;
+    bool debug = false;
+    std::string key = "";
+    std::string outfile = "output.pcap";
     CommonArgs common;
-
-    rtp_pcap_srtp_args_t args;
-    args.op = op;
-    args.alg = srtp_alg_aes128_sha1_32bit;
-    args.force = false;
-    args.debug = false;
-    args.key = "";
-    args.outfile = "output.pcap";
 
     ArgParser parser(argc, argv);
     parser.skip_action(action);
@@ -415,8 +403,8 @@ static int run_srtp_action(const char *progname, int argc, char *argv[], const c
             if (value == NULL) {
                 break;
             }
-            args.alg = rtp_pcap_parse_srtp_alg(value);
-            if (args.alg == srtp_alg_none) {
+            alg = rtp_pcap_parse_srtp_alg(value);
+            if (alg == srtp_alg_none) {
                 snprintf(error, sizeof(error), "invalid algorithm '%s'", value);
                 break;
             }
@@ -425,17 +413,17 @@ static int run_srtp_action(const char *progname, int argc, char *argv[], const c
             if (value == NULL) {
                 break;
             }
-            args.key = value;
+            key = value;
         } else if (parser.is(ARG_OUTPUT)) {
             const char *value = parser.require(ARG_OUTPUT, error, sizeof(error));
             if (value == NULL) {
                 break;
             }
-            args.outfile = value;
+            outfile = value;
         } else if (parser.is(ARG_FORCE)) {
-            args.force = true;
+            force = true;
         } else if (parser.is(ARG_DEBUG)) {
-            args.debug = true;
+            debug = true;
         } else {
             snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
             break;
@@ -458,7 +446,7 @@ static int run_srtp_action(const char *progname, int argc, char *argv[], const c
         return -1;
     }
 
-    if (args.key.length() == 0) {
+    if (key.length() == 0) {
         usage(progname, action);
         fprintf(stdout, "\n%s: no key specified\n", progname);
         return 1;
@@ -471,7 +459,7 @@ static int run_srtp_action(const char *progname, int argc, char *argv[], const c
 
     rtp_pcap_filter_t filter;
     common.init_filter(filter);
-    rtp_pcap_srtp(progname, pcap_file, &filter, &args);
+    rtp_pcap_srtp(progname, pcap_file, &filter, op, alg, force, debug, key, outfile);
     pcap_close(pcap_file);
     return 0;
 }
@@ -479,4 +467,3 @@ static int run_srtp_action(const char *progname, int argc, char *argv[], const c
 int run_encrypt(const char *progname, int argc, char *argv[]) { return run_srtp_action(progname, argc, argv, ARG_ACT_ENCRYPT, cryptop_encrypt); }
 
 int run_decrypt(const char *progname, int argc, char *argv[]) { return run_srtp_action(progname, argc, argv, ARG_ACT_DECRYPT, cryptop_decrypt); }
-#endif // INCLUDE_SRTP

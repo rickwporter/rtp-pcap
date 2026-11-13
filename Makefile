@@ -42,7 +42,9 @@ CPPSRCS             += action_summary.cpp
 CPPSRCS             += action_details.cpp
 CPPSRCS             += action_list.cpp
 CPPSRCS             += action_stats.cpp
+ifneq ("$(INCLUDE_SRTP)", "0")
 CPPSRCS             += action_srtp.cpp
+endif
 
 COBJS      = $(patsubst %.c,$(OBJ_DIR)/%.o,$(CSRCS))
 CPPOBJS    = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(CPPSRCS))

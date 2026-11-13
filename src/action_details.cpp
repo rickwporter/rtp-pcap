@@ -31,14 +31,6 @@ typedef enum {
     idisp_pcap,
 } index_display_t;
 
-typedef struct {
-    bool analyse;
-    bool summarize;
-    uint8_t dtmf_decode;
-    time_display_t time_type;
-    index_display_t index_type;
-} rtp_pcap_details_args_t;
-
 static const ArgDefList details_options = {
     {ARG_ALL, "", "Print all packets in stream"},
     {ARG_QUIET, "", "Do NOT provide analysis comments on stream"},
@@ -277,13 +269,10 @@ const char *rtp_pcap_details_packet_summary(
     return output;
 }
 
-static void
-rtp_pcap_details(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, rtp_pcap_details_args_t *args) {
-    bool suppress = args->summarize;
-    bool analysis = args->analyse;
-    uint8_t dtmf_decode = args->dtmf_decode;
-    time_display_t time_type = args->time_type;
-    index_display_t index_type = args->index_type;
+static void rtp_pcap_details(
+    pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, bool suppress, bool analysis, uint8_t dtmf_decode, time_display_t time_type,
+    index_display_t index_type
+) {
     rtphdr_t last_rtp; // on stack data structure to hold all RTP info from last
                        // packet
     uint8_t last_dtmf_event;
@@ -468,14 +457,12 @@ rtp_pcap_details(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, 
 static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_DETAILS, details_options); }
 
 int run_details(const char *progname, int argc, char *argv[]) {
+    bool analyse = true;
+    bool summarize = true;
+    uint8_t dtmf_decode = RTP_PTYPE_DTMF_DEFAULT;
+    time_display_t time_type = tdisp_none;
+    index_display_t index_type = idisp_pcap;
     CommonArgs common;
-
-    rtp_pcap_details_args_t args;
-    args.analyse = true;
-    args.summarize = true;
-    args.dtmf_decode = RTP_PTYPE_DTMF_DEFAULT;
-    args.time_type = tdisp_none;
-    args.index_type = idisp_pcap;
 
     ArgParser parser(argc, argv);
     parser.skip_action(ARG_ACT_DETAILS);
@@ -501,24 +488,24 @@ int run_details(const char *progname, int argc, char *argv[]) {
             if (value == NULL) {
                 break;
             }
-            args.dtmf_decode = atoi(value);
-            common.rtpmap[args.dtmf_decode] = "telephone-events";
+            dtmf_decode = atoi(value);
+            common.rtpmap[dtmf_decode] = "telephone-events";
         } else if (parser.is(ARG_TIME)) {
             const char *value = parser.require(ARG_TIME, error, sizeof(error));
             if (value == NULL) {
                 break;
             }
-            args.time_type = rtp_pcap_time_display_parse(value);
+            time_type = rtp_pcap_time_display_parse(value);
         } else if (parser.is(ARG_INDEX)) {
             const char *value = parser.require(ARG_INDEX, error, sizeof(error));
             if (value == NULL) {
                 break;
             }
-            args.index_type = parse_index_display(value);
+            index_type = parse_index_display(value);
         } else if (parser.is(ARG_ALL)) {
-            args.summarize = false;
+            summarize = false;
         } else if (parser.is(ARG_QUIET)) {
-            args.analyse = false;
+            analyse = false;
         } else {
             snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
             break;
@@ -548,7 +535,7 @@ int run_details(const char *progname, int argc, char *argv[]) {
 
     rtp_pcap_filter_t filter;
     common.init_filter(filter);
-    rtp_pcap_details(progname, pcap_file, common.rtpmap, &filter, &args);
+    rtp_pcap_details(pcap_file, common.rtpmap, &filter, summarize, analyse, dtmf_decode, time_type, index_type);
     pcap_close(pcap_file);
     return 0;
 }
