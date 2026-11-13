@@ -367,9 +367,9 @@ static int run_srtp_action(const char *progname, SrtpCommand &command, cryptop_t
     return 0;
 }
 
-static void add_srtp_command(CLI::App &app, int &exit_code, const char *progname, const char *name, const char *description, cryptop_t op) {
+static void add_srtp_command(CLI::App &parent, int &exit_code, const char *progname, const char *name, const char *description, cryptop_t op) {
     shared_ptr<SrtpCommand> command = make_shared<SrtpCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(app, name, description);
+    CLI::App *cmd = rtp_pcap_add_command(parent, name, description);
     rtp_pcap_add_common_options(cmd, command->common);
     cmd->add_option("--alg", command->alg, "Cryptographic algorithm suite (default aes128-sha1-32)")
         ->default_val("aes128-sha1-32")
@@ -383,10 +383,10 @@ static void add_srtp_command(CLI::App &app, int &exit_code, const char *progname
     cmd->callback([&exit_code, program, command, op]() { exit_code = run_srtp_action(program.c_str(), *command, op); });
 }
 
-void add_encrypt_command(CLI::App &app, int &exit_code, const char *progname) {
-    add_srtp_command(app, exit_code, progname, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP", cryptop_encrypt);
+void add_encrypt_command(CLI::App &parent, int &exit_code, const char *progname) {
+    add_srtp_command(parent, exit_code, progname, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP", cryptop_encrypt);
 }
 
-void add_decrypt_command(CLI::App &app, int &exit_code, const char *progname) {
-    add_srtp_command(app, exit_code, progname, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP", cryptop_decrypt);
+void add_decrypt_command(CLI::App &parent, int &exit_code, const char *progname) {
+    add_srtp_command(parent, exit_code, progname, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP", cryptop_decrypt);
 }

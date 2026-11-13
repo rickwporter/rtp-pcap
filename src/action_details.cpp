@@ -450,9 +450,9 @@ static int run_details(const char *progname, DetailsCommand &command) {
     return 0;
 }
 
-void add_details_command(CLI::App &app, int &exit_code, const char *progname) {
+void add_details_command(CLI::App &parent, int &exit_code, const char *progname) {
     shared_ptr<DetailsCommand> command = make_shared<DetailsCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(app, ARG_ACT_DETAILS, "Provide RTP packet details");
+    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_DETAILS, "Provide RTP packet details");
     rtp_pcap_add_common_options(cmd, command->common);
     cmd->add_flag("--all", command->print_all, "Print all packets in stream");
     cmd->add_flag("--quiet", command->quiet, "Do NOT provide analysis comments on stream");

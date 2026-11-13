@@ -94,9 +94,9 @@ static int run_summary(const char *progname, SummaryCommand &command) {
     return 0;
 }
 
-void add_summary_command(CLI::App &app, int &exit_code, const char *progname) {
+void add_summary_command(CLI::App &parent, int &exit_code, const char *progname) {
     shared_ptr<SummaryCommand> command = make_shared<SummaryCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(app, ARG_ACT_SUMMARY, "Summarize the RTP stream");
+    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_SUMMARY, "Summarize the RTP stream");
     rtp_pcap_add_common_options(cmd, command->common);
 
     string program(progname);

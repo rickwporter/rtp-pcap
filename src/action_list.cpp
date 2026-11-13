@@ -110,9 +110,9 @@ static int run_list(const char *progname, ListCommand &command) {
     return 0;
 }
 
-void add_list_command(CLI::App &app, int &exit_code, const char *progname) {
+void add_list_command(CLI::App &parent, int &exit_code, const char *progname) {
     shared_ptr<ListCommand> command = make_shared<ListCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(app, ARG_ACT_LIST, "List all RTP streams");
+    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_LIST, "List all RTP streams");
     rtp_pcap_add_common_options(cmd, command->common);
     cmd->add_flag("--odd", command->odd, "Include odd # ports in list (default only considers even)");
     cmd->add_flag("--all", command->all_udp, "Print all UDP packets (not just suspected RTP)");

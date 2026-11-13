@@ -237,9 +237,9 @@ static int run_stats(const char *progname, StatsCommand &command) {
     return 0;
 }
 
-void add_stats_command(CLI::App &app, int &exit_code, const char *progname) {
+void add_stats_command(CLI::App &parent, int &exit_code, const char *progname) {
     shared_ptr<StatsCommand> command = make_shared<StatsCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(app, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
+    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
     rtp_pcap_add_common_options(cmd, command->common);
     rtp_pcap_add_time_option(cmd, command->time, "capture", "Time display format (default capture)");
 
