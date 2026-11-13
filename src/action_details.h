@@ -1,3 +1,7 @@
 #pragma once
 
-int run_details(const char *progname, int argc, char *argv[]);
+namespace CLI {
+class App;
+}
+
+void add_details_command(CLI::App &parent, int &exit_code, const char *progname);

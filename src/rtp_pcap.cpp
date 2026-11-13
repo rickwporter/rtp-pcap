@@ -1,6 +1,9 @@
-#include <stdio.h>
-#include <string.h>  // for strchr()
-#include <strings.h> // for strcasecmp()
+#include <string.h> // for strrchr()
+
+#include <CLI/CLI.hpp>
+#include <iostream>
+#include <string>
+#include <vector>
 
 #include "action_details.h"
 #include "action_list.h"
@@ -9,90 +12,55 @@
 #endif // INCLUDE_SRTP
 #include "action_stats.h"
 #include "action_summary.h"
-#include "arguments.h"
-#include "packet_utilities.h"
 
-#define ACTION_FMT "    %10s : %s\n"
-
-static bool is_action(const char *arg, const char *name) { return arg != NULL && 0 == strcasecmp(arg, name); }
-
-static const char *find_action(int argc, char *argv[]) {
-    if (argc < 2) {
-        return NULL;
+// A bare action (rtp-pcap details) has no flags yet. Required options are checked
+// during parse, so print that action's usage first and leave the process status at 0.
+static bool usage_for_bare_action(CLI::App &app, const char *action) {
+    std::vector<CLI::App *> subs = app.get_subcommands([](CLI::App *) { return true; });
+    for (std::size_t i = 0; i < subs.size(); i++) {
+        if (subs[i]->check_name(action)) {
+            std::cout << subs[i]->help(app.get_name());
+            return true;
+        }
     }
-
-    const char *arg = argv[1];
-    if (
-        is_action(arg, ARG_ACT_SUMMARY) || is_action(arg, ARG_ACT_DETAILS) || is_action(arg, ARG_ACT_LIST) || is_action(arg, ARG_ACT_STATS)
-#if INCLUDE_SRTP
-        || is_action(arg, ARG_ACT_ENCRYPT) || is_action(arg, ARG_ACT_DECRYPT)
-#endif // INCLUDE_SRTP
-    ) {
-        return arg;
-    }
-    return NULL;
-}
-
-static void usage(const char *progname) {
-    fprintf(stdout, "\n%s usage:\n\n", progname);
-    fprintf(stdout, "  %s <action> [arguments]\n\n", progname);
-    fprintf(stdout, "  Actions\n");
-    fprintf(stdout, ACTION_FMT, ARG_ACT_LIST, "List all RTP streams");
-    fprintf(stdout, ACTION_FMT, ARG_ACT_SUMMARY, "Summarize the RTP stream");
-    fprintf(stdout, ACTION_FMT, ARG_ACT_DETAILS, "Provide RTP packet details");
-    fprintf(stdout, ACTION_FMT, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
-#if INCLUDE_SRTP
-    fprintf(stdout, ACTION_FMT, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP");
-    fprintf(stdout, ACTION_FMT, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP");
-#endif // INCLUDE_SRTP
-    fprintf(stdout, "\n");
-    fprintf(stdout, "  Use \"%s <action> %s\" for action argument info.\n\n", progname, ARG_HELP);
+    return false;
 }
 
 int main(int argc, char *argv[]) {
-    char *tmp;
-    const char *progname;
-    const char *action;
+    const char *slash = strrchr(argv[0], '/');
+    const char *progname = (NULL == slash ? argv[0] : slash + 1);
+    int exit_code = 0;
 
-    // determine the basename
-    tmp = strchr(argv[0], '/');
-    progname = (NULL == tmp ? argv[0] : tmp + 1);
+    CLI::App app{"Look at RTP in a PCAP file"};
+    app.name(progname);
+    app.ignore_case();
+    app.option_defaults()->ignore_case();
+    app.set_help_flag("-h,--help", "Print this help message and exit");
+    app.require_subcommand();
 
-    action = find_action(argc, argv);
-    if (NULL == action) {
-        bool help = (1 == argc);
-        for (int i = 1; i < argc; i++) {
-            if (rtp_pcap_arg_is_help(argv[i])) {
-                help = true;
-            } else {
-                help = false;
-                break;
-            }
-        }
-        usage(progname);
-        if (!help) {
-            fprintf(stdout, "\n%s: no action specified\n", progname);
-            return 1;
-        }
+    add_list_command(app, exit_code, progname);
+    add_summary_command(app, exit_code, progname);
+    add_details_command(app, exit_code, progname);
+    add_stats_command(app, exit_code, progname);
+#if INCLUDE_SRTP
+    add_encrypt_command(app, exit_code, progname);
+    add_decrypt_command(app, exit_code, progname);
+#endif // INCLUDE_SRTP
+
+    app.footer(std::string("Use \"") + progname + " <action> --help\" for action argument info.");
+
+    if (argc <= 1) {
+        std::cout << app.help();
+        return 0;
+    }
+    if (argc == 2 && usage_for_bare_action(app, argv[1])) {
         return 0;
     }
 
-    if (0 == strcasecmp(action, ARG_ACT_SUMMARY)) {
-        return run_summary(progname, argc, argv);
-    } else if (0 == strcasecmp(action, ARG_ACT_DETAILS)) {
-        return run_details(progname, argc, argv);
-    } else if (0 == strcasecmp(action, ARG_ACT_LIST)) {
-        return run_list(progname, argc, argv);
-#if INCLUDE_SRTP
-    } else if (0 == strcasecmp(action, ARG_ACT_ENCRYPT)) {
-        return run_encrypt(progname, argc, argv);
-    } else if (0 == strcasecmp(action, ARG_ACT_DECRYPT)) {
-        return run_decrypt(progname, argc, argv);
-#endif // INCLUDE_SRTP
-    } else if (0 == strcasecmp(action, ARG_ACT_STATS)) {
-        return run_stats(progname, argc, argv);
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+        return app.exit(e);
     }
-
-    fprintf(stdout, "%s: unhandled action='%s'\n", progname, action);
-    return -4;
+    return exit_code;
 }

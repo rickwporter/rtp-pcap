@@ -1,11 +1,10 @@
 #pragma once
 
-#include <stddef.h>
 #include <stdint.h>
 
-#include <list>
 #include <map>
 #include <string>
+#include <vector>
 
 #define FILTER_FLAG_SRC_FILTER (1 << 0)
 #define FILTER_FLAG_DST_FILTER (1 << 1)
@@ -16,27 +15,12 @@
 
 #define RTP_PTYPE_DTMF_DEFAULT 101
 
-#define ARG_HELP "--help"
-#define ARG_FILE "--file"
-#define ARG_ADDR "--ip"
-#define ARG_PORT "--port"
-#define ARG_FILTER "--filter"
-#define ARG_MAP "--rtpmap"
-
 #define ARG_ACT_SUMMARY "summary"
 #define ARG_ACT_DETAILS "details"
 #define ARG_ACT_LIST "list"
 #define ARG_ACT_ENCRYPT "encrypt"
 #define ARG_ACT_DECRYPT "decrypt"
 #define ARG_ACT_STATS "stats"
-
-#define AFMT_FILE "<file>"
-#define AFMT_ADDR "<addr>"
-#define AFMT_PORT "<num>"
-#define AFMT_FILTER "<dst|src>"
-#define AFMT_MAP "<num=string[:num=string[...]]>"
-
-#define HELP_FMT "      %-7s %-8s: %s\n"
 
 typedef struct {
     uint32_t flags;
@@ -69,65 +53,29 @@ class CommonArgs {
   public:
     CommonArgs();
 
+    RtpMap create_rtpmap() const;
     void init_filter(rtp_pcap_filter_t &filter) const;
 
     std::string filename;
+    std::string filter; // "dst" or "src"
     std::string addr;
     std::string port;
-    bool src_filter; // --filter src; otherwise destination
-    RtpMap rtpmap;
-    bool is_help; // --help was given, or the action has no other arguments
+    std::vector<std::string> rtpmap_values;
 };
 
-class ArgumentDefinition {
-  public:
-    ArgumentDefinition(const std::string &name, const std::string &format, const std::string &description);
+namespace CLI {
+class App;
+}
 
-    std::string name;
-    std::string format;
-    std::string description;
-};
+// Subcommand with case-insensitive name and flag matching, including --help.
+CLI::App *rtp_pcap_add_subcommand(CLI::App &parent, const std::string &name, const std::string &description);
 
-typedef std::list<ArgumentDefinition> ArgDefList;
+// Options shared by every action. The PCAP path is a required positional.
+// Keyword values (--filter) are case-insensitive.
+// File names, addresses, and rtpmap text keep the case they were given.
+void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args);
 
-typedef enum {
-    parse_ignored,
-    parse_ok,
-    parse_help,
-    parse_error,
-} rtp_pcap_parse_result_t;
+// --time on details and stats. The stored value is one of the canonical names.
+void rtp_pcap_add_time_option(CLI::App *cmd, std::string &time, const std::string &default_value, const std::string &description);
 
-// Walks argv, skipping the program name and any occurrence of the action word.
-class ArgParser {
-  public:
-    ArgParser(int argc, char **argv);
-
-    void skip_action(const char *action);
-    bool next();
-    const char *arg() const;
-    bool is(const char *name) const;
-    bool is_help() const;
-
-    // Next argv entry, or NULL when this was the last argument.
-    const char *value();
-
-    // Like value(), and writes a "missing value" error when it is absent.
-    const char *require(const char *option, char *error, size_t error_size);
-
-  private:
-    int argc_;
-    char **argv_;
-    int index_;
-    const char *current_;
-    const char *action_;
-};
-
-time_display_t rtp_pcap_time_display_parse(const char *arg);
-
-bool rtp_pcap_arg_is_help(const char *arg);
-rtp_pcap_parse_result_t rtp_pcap_parse_common_arg(ArgParser &parser, CommonArgs &args, char *error, size_t error_size);
-
-// Returns an error message when a required common argument is missing, otherwise an empty string.
-std::string rtp_pcap_args_ready(const CommonArgs &args);
-
-void rtp_pcap_action_usage(const char *progname, const char *action, const ArgDefList &options);
+time_display_t rtp_pcap_time_display_parse(const std::string &name);

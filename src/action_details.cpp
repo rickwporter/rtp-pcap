@@ -1,11 +1,10 @@
-#include <algorithm>
-#include <cctype> // for tolower()
 #include <cstdio>
-#include <cstdlib> // for atoi()
 #include <cstring> // for memset()
 #include <ctime>
 #include <string>
 
+#include <CLI/CLI.hpp>
+#include <memory>
 #include <pcap/pcap.h>
 
 #include "action_details.h"
@@ -16,43 +15,10 @@
 
 using namespace std;
 
-#define ARG_DTMF "--dtmf"
-#define ARG_ALL "--all"
-#define ARG_QUIET "--quiet"
-#define ARG_INDEX "--index"
-#define ARG_TIME "--time"
-
-#define AFMT_DTMF "<num>"
-#define AFMT_INDEX "<pcap|stream>"
-#define AFMT_TIME "<none|previous|capture|timeofday|date>"
-
 typedef enum {
     idisp_stream,
     idisp_pcap,
 } index_display_t;
-
-static const ArgDefList details_options = {
-    {ARG_ALL, "", "Print all packets in stream"},
-    {ARG_QUIET, "", "Do NOT provide analysis comments on stream"},
-    {ARG_INDEX, AFMT_INDEX, "Index type (default is stream)"},
-    {ARG_TIME, AFMT_TIME, "Time display format (default=none)"},
-    {ARG_DTMF, AFMT_DTMF, "RTP payload type for DTMF decodes (default=101)"},
-};
-
-static index_display_t parse_index_display(const char *arg) {
-    if (arg == NULL) {
-        return idisp_stream;
-    }
-
-    string str(arg);
-    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-
-    if (str.find("p") != string::npos) {
-        return idisp_pcap;
-    }
-
-    return idisp_stream;
-}
 
 int rtp_pcap_packet_get_rtp_payload_length(rtp_pcap_pkt_t *pkt) {
     int length = pkt->udph->len - sizeof(*(pkt->udph));
@@ -454,88 +420,50 @@ static void rtp_pcap_details(
     } while (1);
 }
 
-static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_DETAILS, details_options); }
-
-int run_details(const char *progname, int argc, char *argv[]) {
-    bool analyse = true;
-    bool summarize = true;
-    uint8_t dtmf_decode = RTP_PTYPE_DTMF_DEFAULT;
-    time_display_t time_type = tdisp_none;
-    index_display_t index_type = idisp_pcap;
+struct DetailsArgs {
     CommonArgs common;
+    bool print_all;
+    bool quiet;
+    std::string index;
+    std::string time;
+    int dtmf;
 
-    ArgParser parser(argc, argv);
-    parser.skip_action(ARG_ACT_DETAILS);
+    DetailsArgs() : print_all(false), quiet(false), index("pcap"), time("none"), dtmf(RTP_PTYPE_DTMF_DEFAULT) {}
+};
 
-    char error[256];
-    error[0] = '\0';
+static int run_details(const char *progname, DetailsArgs &args) {
+    RtpMap rtpmap = args.common.create_rtpmap();
+    uint8_t dtmf_decode = static_cast<uint8_t>(args.dtmf);
+    rtpmap[dtmf_decode] = "telephone-events";
 
-    while (parser.next()) {
-        common.is_help = false;
-        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
-        if (parsed == parse_help) {
-            break;
-        }
-        if (parsed == parse_error) {
-            break;
-        }
-        if (parsed == parse_ok) {
-            continue;
-        }
-
-        if (parser.is(ARG_DTMF)) {
-            const char *value = parser.require(ARG_DTMF, error, sizeof(error));
-            if (value == NULL) {
-                break;
-            }
-            dtmf_decode = atoi(value);
-            common.rtpmap[dtmf_decode] = "telephone-events";
-        } else if (parser.is(ARG_TIME)) {
-            const char *value = parser.require(ARG_TIME, error, sizeof(error));
-            if (value == NULL) {
-                break;
-            }
-            time_type = rtp_pcap_time_display_parse(value);
-        } else if (parser.is(ARG_INDEX)) {
-            const char *value = parser.require(ARG_INDEX, error, sizeof(error));
-            if (value == NULL) {
-                break;
-            }
-            index_type = parse_index_display(value);
-        } else if (parser.is(ARG_ALL)) {
-            summarize = false;
-        } else if (parser.is(ARG_QUIET)) {
-            analyse = false;
-        } else {
-            snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
-            break;
-        }
-    }
-
-    if (common.is_help) {
-        usage(progname);
-        return 0;
-    }
-    if (error[0] != '\0') {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, error);
-        return -1;
-    }
-    std::string ready_error = rtp_pcap_args_ready(common);
-    if (!ready_error.empty()) {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
-        return -1;
-    }
-
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    common.init_filter(filter);
-    rtp_pcap_details(pcap_file, common.rtpmap, &filter, summarize, analyse, dtmf_decode, time_type, index_type);
+    args.common.init_filter(filter);
+    index_display_t index_type = (args.index == "pcap" ? idisp_pcap : idisp_stream);
+    time_display_t time_type = rtp_pcap_time_display_parse(args.time);
+    rtp_pcap_details(pcap_file, rtpmap, &filter, !args.print_all, !args.quiet, dtmf_decode, time_type, index_type);
     pcap_close(pcap_file);
     return 0;
+}
+
+void add_details_command(CLI::App &parent, int &exit_code, const char *progname) {
+    shared_ptr<DetailsArgs> args = make_shared<DetailsArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_DETAILS, "Provide RTP packet details");
+    rtp_pcap_add_common_options(subcmd, args->common);
+    subcmd->add_flag("--all", args->print_all, "Print all packets in stream");
+    subcmd->add_flag("--quiet", args->quiet, "Do NOT provide analysis comments on stream");
+    subcmd->add_option("--index", args->index, "Index type (default pcap)")
+        ->default_val("pcap")
+        ->transform(CLI::IsMember({"pcap", "stream"}, CLI::ignore_case));
+    rtp_pcap_add_time_option(subcmd, args->time, "none", "Time display format (default none)");
+    subcmd->add_option("--dtmf", args->dtmf, "RTP payload type for DTMF decodes (default 101)")
+        ->default_val(RTP_PTYPE_DTMF_DEFAULT)
+        ->check(CLI::Range(0, 127));
+
+    string program(progname);
+    subcmd->callback([&exit_code, program, args]() { exit_code = run_details(program.c_str(), *args); });
 }

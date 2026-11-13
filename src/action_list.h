@@ -1,3 +1,7 @@
 #pragma once
 
-int run_list(const char *progname, int argc, char *argv[]);
+namespace CLI {
+class App;
+}
+
+void add_list_command(CLI::App &parent, int &exit_code, const char *progname);

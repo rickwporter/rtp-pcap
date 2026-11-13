@@ -1,10 +1,11 @@
 #include <cstdio>
-#include <cstring>   // for memset()
-#include <ctype.h>   // for isxdigit()
-#include <string.h>  // for memcpy(), strlen()
-#include <strings.h> // for strstr()
+#include <cstring>  // for memset()
+#include <ctype.h>  // for isxdigit()
+#include <string.h> // for memcpy(), strlen()
 #include <sys/stat.h>
 
+#include <CLI/CLI.hpp>
+#include <memory>
 #include <pcap/pcap.h>
 #include <srtp2/srtp.h>
 
@@ -16,16 +17,6 @@
 #include "rtp_utils.h"
 
 using namespace std;
-
-#define ARG_ALG "--alg"
-#define ARG_KEY "--key"
-#define ARG_OUTPUT "--output"
-#define ARG_FORCE "--force"
-#define ARG_DEBUG "--debug"
-
-#define AFMT_ALG "<aes128-sha1-32|aes128-sha1-80>"
-#define AFMT_KEY "<hex|base64>"
-#define AFMT_OUTPUT "<filename>"
 
 typedef enum {
     cryptop_none,
@@ -39,29 +30,7 @@ typedef enum {
     srtp_alg_aes128_sha1_80bit,
 } srtp_algorithm_t;
 
-static const ArgDefList srtp_options = {
-    {ARG_ALG, AFMT_ALG, "Cryptographic algorithm suite (default=aes128-sha1-32)"},
-    {ARG_KEY, AFMT_KEY, "Master key in hexidecimal format"},
-    {ARG_OUTPUT, AFMT_OUTPUT, "Output filename (default=output.pcap)"},
-    {ARG_FORCE, "", "Overwrite existing output file"},
-    {ARG_DEBUG, "", "Turn on libSRTP debug"},
-};
-
 typedef map<srtp_err_status_t, int> SrtpErrorMap;
-
-static srtp_algorithm_t rtp_pcap_parse_srtp_alg(const char *algstr) {
-    if (NULL == algstr) {
-        return srtp_alg_none;
-    }
-    if (NULL != strstr(algstr, "32")) {
-        return srtp_alg_aes128_sha1_32bit;
-    }
-    if (NULL != strstr(algstr, "80")) {
-        return srtp_alg_aes128_sha1_80bit;
-    }
-
-    return srtp_alg_none;
-}
 
 const char *rtp_pcap_algorithm_string(srtp_algorithm_t alg) {
     if (srtp_alg_none == alg) {
@@ -369,101 +338,55 @@ static void rtp_pcap_srtp(
     pcap_close(output);
 }
 
-static void usage(const char *progname, const char *action) { rtp_pcap_action_usage(progname, action, srtp_options); }
-
-static int run_srtp_action(const char *progname, int argc, char *argv[], const char *action, cryptop_t op) {
-    srtp_algorithm_t alg = srtp_alg_aes128_sha1_32bit;
-    bool force = false;
-    bool debug = false;
-    std::string key = "";
-    std::string outfile = "output.pcap";
+struct SrtpArgs {
     CommonArgs common;
+    std::string alg;
+    std::string key;
+    std::string outfile;
+    bool force;
+    bool debug;
 
-    ArgParser parser(argc, argv);
-    parser.skip_action(action);
+    SrtpArgs() : alg("aes128-sha1-32"), outfile("output.pcap"), force(false), debug(false) {}
+};
 
-    char error[256];
-    error[0] = '\0';
-
-    while (parser.next()) {
-        common.is_help = false;
-        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
-        if (parsed == parse_help) {
-            break;
-        }
-        if (parsed == parse_error) {
-            break;
-        }
-        if (parsed == parse_ok) {
-            continue;
-        }
-
-        if (parser.is(ARG_ALG)) {
-            const char *value = parser.require(ARG_ALG, error, sizeof(error));
-            if (value == NULL) {
-                break;
-            }
-            alg = rtp_pcap_parse_srtp_alg(value);
-            if (alg == srtp_alg_none) {
-                snprintf(error, sizeof(error), "invalid algorithm '%s'", value);
-                break;
-            }
-        } else if (parser.is(ARG_KEY)) {
-            const char *value = parser.require(ARG_KEY, error, sizeof(error));
-            if (value == NULL) {
-                break;
-            }
-            key = value;
-        } else if (parser.is(ARG_OUTPUT)) {
-            const char *value = parser.require(ARG_OUTPUT, error, sizeof(error));
-            if (value == NULL) {
-                break;
-            }
-            outfile = value;
-        } else if (parser.is(ARG_FORCE)) {
-            force = true;
-        } else if (parser.is(ARG_DEBUG)) {
-            debug = true;
-        } else {
-            snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
-            break;
-        }
+static int run_srtp_action(const char *progname, SrtpArgs &args, cryptop_t op) {
+    srtp_algorithm_t alg = srtp_alg_aes128_sha1_32bit;
+    if (args.alg == "aes128-sha1-80") {
+        alg = srtp_alg_aes128_sha1_80bit;
     }
 
-    if (common.is_help) {
-        usage(progname, action);
-        return 0;
-    }
-    if (error[0] != '\0') {
-        usage(progname, action);
-        fprintf(stdout, "\n%s: %s\n", progname, error);
-        return -1;
-    }
-    std::string ready_error = rtp_pcap_args_ready(common);
-    if (!ready_error.empty()) {
-        usage(progname, action);
-        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
-        return -1;
-    }
-
-    if (key.length() == 0) {
-        usage(progname, action);
-        fprintf(stdout, "\n%s: no key specified\n", progname);
-        return 1;
-    }
-
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    common.init_filter(filter);
-    rtp_pcap_srtp(progname, pcap_file, &filter, op, alg, force, debug, key, outfile);
+    args.common.init_filter(filter);
+    rtp_pcap_srtp(progname, pcap_file, &filter, op, alg, args.force, args.debug, args.key, args.outfile);
     pcap_close(pcap_file);
     return 0;
 }
 
-int run_encrypt(const char *progname, int argc, char *argv[]) { return run_srtp_action(progname, argc, argv, ARG_ACT_ENCRYPT, cryptop_encrypt); }
+static void add_srtp_command(CLI::App &parent, int &exit_code, const char *progname, const char *name, const char *description, cryptop_t op) {
+    shared_ptr<SrtpArgs> args = make_shared<SrtpArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, name, description);
+    rtp_pcap_add_common_options(subcmd, args->common);
+    subcmd->add_option("--alg", args->alg, "Cryptographic algorithm suite (default aes128-sha1-32)")
+        ->default_val("aes128-sha1-32")
+        ->transform(CLI::IsMember({"aes128-sha1-32", "aes128-sha1-80"}, CLI::ignore_case));
+    subcmd->add_option("--key", args->key, "Master key in hexadecimal or base64 format")->required()->type_name("hex|base64");
+    subcmd->add_option("--output", args->outfile, "Output filename (default output.pcap)")->default_val("output.pcap")->type_name("filename");
+    subcmd->add_flag("--force", args->force, "Overwrite existing output file");
+    subcmd->add_flag("--debug", args->debug, "Turn on libSRTP debug");
 
-int run_decrypt(const char *progname, int argc, char *argv[]) { return run_srtp_action(progname, argc, argv, ARG_ACT_DECRYPT, cryptop_decrypt); }
+    string program(progname);
+    subcmd->callback([&exit_code, program, args, op]() { exit_code = run_srtp_action(program.c_str(), *args, op); });
+}
+
+void add_encrypt_command(CLI::App &parent, int &exit_code, const char *progname) {
+    add_srtp_command(parent, exit_code, progname, ARG_ACT_ENCRYPT, "Encrypt single RTP stream to another PCAP", cryptop_encrypt);
+}
+
+void add_decrypt_command(CLI::App &parent, int &exit_code, const char *progname) {
+    add_srtp_command(parent, exit_code, progname, ARG_ACT_DECRYPT, "Decrypt single RTP stream to another PCAP", cryptop_decrypt);
+}

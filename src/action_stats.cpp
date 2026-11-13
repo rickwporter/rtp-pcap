@@ -5,6 +5,8 @@
 #include <cstring> // for memset()
 #include <netinet/in.h>
 
+#include <CLI/CLI.hpp>
+#include <memory>
 #include <pcap/pcap.h>
 
 #include "action_stats.h"
@@ -14,13 +16,6 @@
 #include "time_utilities.h"
 
 using namespace std;
-
-#define ARG_TIME "--time"
-#define AFMT_TIME "<none|previous|capture|timeofday|date>"
-
-static const ArgDefList stats_options = {
-    {ARG_TIME, AFMT_TIME, "Time display format (default=capture)"},
-};
 
 class StreamStats {
   private:
@@ -222,67 +217,32 @@ static void rtp_pcap_stats(pcap_t *pcap_file, rtp_pcap_filter_t *filter, time_di
     return;
 }
 
-static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_STATS, stats_options); }
-
-int run_stats(const char *progname, int argc, char *argv[]) {
-    time_display_t time_type = tdisp_startcapture;
+struct StatsArgs {
     CommonArgs common;
+    std::string time;
 
-    ArgParser parser(argc, argv);
-    parser.skip_action(ARG_ACT_STATS);
+    StatsArgs() : time("capture") {}
+};
 
-    char error[256];
-    error[0] = '\0';
-
-    while (parser.next()) {
-        common.is_help = false;
-        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
-        if (parsed == parse_help) {
-            break;
-        }
-        if (parsed == parse_error) {
-            break;
-        }
-        if (parsed == parse_ok) {
-            continue;
-        }
-
-        if (parser.is(ARG_TIME)) {
-            const char *value = parser.require(ARG_TIME, error, sizeof(error));
-            if (value == NULL) {
-                break;
-            }
-            time_type = rtp_pcap_time_display_parse(value);
-        } else {
-            snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
-            break;
-        }
-    }
-
-    if (common.is_help) {
-        usage(progname);
-        return 0;
-    }
-    if (error[0] != '\0') {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, error);
-        return -1;
-    }
-    std::string ready_error = rtp_pcap_args_ready(common);
-    if (!ready_error.empty()) {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
-        return -1;
-    }
-
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+static int run_stats(const char *progname, StatsArgs &args) {
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    common.init_filter(filter);
-    rtp_pcap_stats(pcap_file, &filter, time_type);
+    args.common.init_filter(filter);
+    rtp_pcap_stats(pcap_file, &filter, rtp_pcap_time_display_parse(args.time));
     pcap_close(pcap_file);
     return 0;
+}
+
+void add_stats_command(CLI::App &parent, int &exit_code, const char *progname) {
+    shared_ptr<StatsArgs> args = make_shared<StatsArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
+    rtp_pcap_add_common_options(subcmd, args->common);
+    rtp_pcap_add_time_option(subcmd, args->time, "capture", "Time display format (default capture)");
+
+    string program(progname);
+    subcmd->callback([&exit_code, program, args]() { exit_code = run_stats(program.c_str(), *args); });
 }
