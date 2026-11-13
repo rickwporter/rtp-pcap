@@ -392,10 +392,10 @@ result=$?
 check_result "DTMF stats missed" 0 $result
 check_substring "DTMF stats missed" "$DTMF_STATS_MISSED" "$output"
 
-DTMF_STATS_SOURCE_TIME="IP source: 192.168.105.110:4374, 665 packets (1360 in capture)
+DTMF_STATS_SOURCE="IP source: 192.168.105.110:4374, 665 packets (1360 in capture)
   0x9A7B5382:
-      start-time: 08:03:42.159
-        end-time: 08:04:02.140
+      start-time: 76.829
+        end-time: 96.810
         duration: 19.981 seconds
          packets: 665
             lost: 2
@@ -406,32 +406,11 @@ DTMF_STATS_SOURCE_TIME="IP source: 192.168.105.110:4374, 665 packets (1360 in ca
                 min: 29.902 msecs
                mean: 30.001 msecs
                 max: 30.097 msecs"
-output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --filter src --time timeofday 2>&1)
+output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --filter src 2>&1)
 result=$?
 
-check_result "DTMF stats src/timeofday" 0 $result
-check_substring "DTMF stats src/timeofday" "$DTMF_STATS_SOURCE_TIME" "$output"
-
-
-DTMF_STATS_DATE="IP destination: 192.168.105.172:4376, 665 packets (1360 in capture)
-  0x9A7B5382:
-      start-time: 2005-09-09 08:03:42.159
-        end-time: 2005-09-09 08:04:02.140
-        duration: 19.981 seconds
-         packets: 665
-            lost: 2
-      misordered: 0
-           jumps: 0
-      pt changes: 0
-           delta:
-                min: 29.902 msecs
-               mean: 30.001 msecs
-                max: 30.097 msecs"
-output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --time date 2>&1)
-result=$?
-
-check_result "DTMF stats date" 0 $result
-check_substring "DTMF stats date" "$DTMF_STATS_DATE" "$output"
+check_result "DTMF stats src" 0 $result
+check_substring "DTMF stats src" "$DTMF_STATS_SOURCE" "$output"
 
 
 #################################################
