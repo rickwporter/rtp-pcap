@@ -109,7 +109,7 @@ void rtp_pcap_details_time_display(
 }
 
 const char *rtp_pcap_details_analyze(
-    char *output, size_t out_size, rtphdr_t *rtph, rtphdr_t *last_rtp, const rtpmap_t &rtpmap, uint32_t samples_per_packet, uint8_t dtmf_decode,
+    char *output, size_t out_size, rtphdr_t *rtph, rtphdr_t *last_rtp, const RtpMap &rtpmap, uint32_t samples_per_packet, uint8_t dtmf_decode,
     uint8_t last_dtmf_event, uint32_t last_dtmf_time
 ) {
     rtp_event_t *dtmfh;
@@ -130,9 +130,9 @@ const char *rtp_pcap_details_analyze(
                 output,
                 out_size,
                 "***** Codec type change from %s(%u) to %s(%u) ******\n",
-                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)),
+                rtpmap.get_string(rtp_hdr_get_ptype(last_rtp)),
                 rtp_hdr_get_ptype(last_rtp),
-                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)),
+                rtpmap.get_string(rtp_hdr_get_ptype(rtph)),
                 rtp_hdr_get_ptype(rtph)
             );
         else
@@ -141,10 +141,10 @@ const char *rtp_pcap_details_analyze(
                 out_size,
                 "***** Codec type change from %s(%u), seq=%u to %s(%u), seq=%u "
                 "******\n",
-                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)),
+                rtpmap.get_string(rtp_hdr_get_ptype(last_rtp)),
                 rtp_hdr_get_ptype(last_rtp),
                 rtp_hdr_get_sequence(last_rtp),
-                rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)),
+                rtpmap.get_string(rtp_hdr_get_ptype(rtph)),
                 rtp_hdr_get_ptype(rtph),
                 rtp_hdr_get_sequence(rtph)
             );
@@ -201,7 +201,7 @@ const char *rtp_pcap_details_analyze(
 }
 
 const char *rtp_pcap_details_packet_display(
-    char *output, size_t out_size, rtphdr_t *rtph, uint32_t index, const char *time_display, const rtpmap_t &rtpmap, uint8_t dtmf_decode,
+    char *output, size_t out_size, rtphdr_t *rtph, uint32_t index, const char *time_display, const RtpMap &rtpmap, uint8_t dtmf_decode,
     int payload_len
 ) {
     char payload_display[512];
@@ -231,7 +231,7 @@ const char *rtp_pcap_details_packet_display(
             "%6d %s Payload type=%s(%d), SSRC=0x%08X, Seq=%u, Time=%u%s%s\n",
             index,
             time_display,
-            rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(rtph)),
+            rtpmap.get_string(rtp_hdr_get_ptype(rtph)),
             rtp_hdr_get_ptype(rtph),
             rtp_hdr_get_ssrc(rtph),
             rtp_hdr_get_sequence(rtph),
@@ -246,7 +246,7 @@ const char *rtp_pcap_details_packet_display(
 
 const char *rtp_pcap_details_packet_summary(
     char *output, size_t out_size, rtphdr_t *last_rtp, uint32_t n_suppressed, uint32_t index_start, uint32_t index_end, const char *time_display,
-    const rtpmap_t &rtpmap, uint8_t dtmf_decode, uint8_t last_dtmf_event, uint32_t samples_per_packet
+    const RtpMap &rtpmap, uint8_t dtmf_decode, uint8_t last_dtmf_event, uint32_t samples_per_packet
 ) {
     char payload_display[512];
 
@@ -266,7 +266,7 @@ const char *rtp_pcap_details_packet_summary(
         index_start,
         index_end,
         time_display,
-        rtp_pcap_rtpmap_get_string(rtpmap, rtp_hdr_get_ptype(last_rtp)),
+        rtpmap.get_string(rtp_hdr_get_ptype(last_rtp)),
         rtp_hdr_get_ptype(last_rtp),
         rtp_hdr_get_ssrc(last_rtp),
         (rtp_hdr_get_sequence(last_rtp) - n_suppressed + 1) & 0xffff,
@@ -278,7 +278,7 @@ const char *rtp_pcap_details_packet_summary(
 }
 
 static void
-rtp_pcap_details(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpmap, rtp_pcap_filter_t *filter, rtp_pcap_details_args_t *args) {
+rtp_pcap_details(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, rtp_pcap_details_args_t *args) {
     bool suppress = args->summarize;
     bool analysis = args->analyse;
     uint8_t dtmf_decode = args->dtmf_decode;

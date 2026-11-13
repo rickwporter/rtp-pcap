@@ -46,7 +46,14 @@ typedef struct {
     uint16_t dport;
 } rtp_pcap_filter_t;
 
-typedef std::map<uint8_t, std::string> rtpmap_t;
+// Payload type to codec name. Unknown types report "unknown".
+class RtpMap : public std::map<uint8_t, std::string> {
+  public:
+    RtpMap();
+
+    void parse(const char *arg);
+    const char *get_string(uint8_t payload_type) const;
+};
 
 typedef enum {
     tdisp_none,
@@ -68,7 +75,7 @@ class CommonArgs {
     std::string addr;
     std::string port;
     bool src_filter; // --filter src; otherwise destination
-    rtpmap_t rtpmap;
+    RtpMap rtpmap;
     bool is_help; // --help was given, or the action has no other arguments
 };
 
@@ -115,9 +122,6 @@ class ArgParser {
     const char *action_;
 };
 
-void rtp_pcap_rtpmap_init(rtpmap_t &map);
-const char *rtp_pcap_rtpmap_get_string(const rtpmap_t &map, uint8_t payload_type);
-void rtp_pcap_rtpmap_parse_arg(rtpmap_t &map, const char *arg);
 time_display_t rtp_pcap_time_display_parse(const char *arg);
 
 bool rtp_pcap_arg_is_help(const char *arg);

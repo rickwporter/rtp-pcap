@@ -14,7 +14,7 @@ using namespace std;
 typedef std::map<uint32_t, uint32_t> map_count_t;
 typedef map_count_t::iterator map_count_i;
 
-static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpmap_t &rtpmap, rtp_pcap_filter_t *filter) {
+static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter) {
     map_count_t ssrcs;
     map_count_t codecs;
     map_count_i icount;
@@ -69,7 +69,7 @@ static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const rtpm
 
     fprintf(stdout, "  Payload types (%zu):\n", codecs.size());
     for (icount = codecs.begin(); icount != codecs.end(); icount++) {
-        fprintf(stdout, "    %s (%u) : %u\n", rtp_pcap_rtpmap_get_string(rtpmap, icount->first), icount->first, icount->second);
+        fprintf(stdout, "    %s (%u) : %u\n", rtpmap.get_string(icount->first), icount->first, icount->second);
     }
 }
 

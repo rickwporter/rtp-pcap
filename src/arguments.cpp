@@ -12,48 +12,48 @@
 
 using namespace std;
 
-void rtp_pcap_rtpmap_init(rtpmap_t &map) {
+RtpMap::RtpMap() {
     // initialize with the well-known codecs
-    map[0] = "pcmu";
-    map[3] = "gsm";
-    map[4] = "g723";
-    map[5] = "dvi4";
-    map[6] = "dvi4";
-    map[7] = "lpc";
-    map[8] = "pcma";
-    map[9] = "g722";
-    map[10] = "l16";
-    map[11] = "l16";
-    map[12] = "qcelp";
-    map[13] = "cn";
-    map[14] = "mpa";
-    map[15] = "g728";
-    map[18] = "g729";
-    map[25] = "celb";
-    map[26] = "jpeg";
-    map[28] = "nv";
-    map[31] = "h261";
-    map[32] = "mpv";
-    map[33] = "mp2t";
-    map[34] = "h263";
-    map[72] = "rtcp";
-    map[73] = "rtcp";
-    map[74] = "rtcp";
-    map[75] = "rtcp";
-    map[76] = "rtcp";
-    map[RTP_PTYPE_DTMF_DEFAULT] = "telephone-events";
+    (*this)[0] = "pcmu";
+    (*this)[3] = "gsm";
+    (*this)[4] = "g723";
+    (*this)[5] = "dvi4";
+    (*this)[6] = "dvi4";
+    (*this)[7] = "lpc";
+    (*this)[8] = "pcma";
+    (*this)[9] = "g722";
+    (*this)[10] = "l16";
+    (*this)[11] = "l16";
+    (*this)[12] = "qcelp";
+    (*this)[13] = "cn";
+    (*this)[14] = "mpa";
+    (*this)[15] = "g728";
+    (*this)[18] = "g729";
+    (*this)[25] = "celb";
+    (*this)[26] = "jpeg";
+    (*this)[28] = "nv";
+    (*this)[31] = "h261";
+    (*this)[32] = "mpv";
+    (*this)[33] = "mp2t";
+    (*this)[34] = "h263";
+    (*this)[72] = "rtcp";
+    (*this)[73] = "rtcp";
+    (*this)[74] = "rtcp";
+    (*this)[75] = "rtcp";
+    (*this)[76] = "rtcp";
+    (*this)[RTP_PTYPE_DTMF_DEFAULT] = "telephone-events";
 }
 
-const char *rtp_pcap_rtpmap_get_string(const rtpmap_t &map, uint8_t payload_type) {
-    rtpmap_t::const_iterator iMap = map.find(payload_type);
-    if (iMap != map.end()) {
+const char *RtpMap::get_string(uint8_t payload_type) const {
+    const_iterator iMap = find(payload_type);
+    if (iMap != end()) {
         return iMap->second.c_str();
     }
 
     return "unknown";
 }
 
-void rtp_pcap_rtpmap_parse_arg(rtpmap_t &map, const char *arg) {
+void RtpMap::parse(const char *arg) {
     if (arg == NULL) {
         return;
     }
@@ -72,7 +72,7 @@ void rtp_pcap_rtpmap_parse_arg(rtpmap_t &map, const char *arg) {
         }
 
         string text = astr.substr(pos1 + 1, pos2 - pos1 - 1);
-        map[ptype] = text;
+        (*this)[ptype] = text;
         pos = pos2 + 1;
     }
 }
@@ -160,7 +160,7 @@ const char *ArgParser::require(const char *option, char *error, size_t error_siz
     return next;
 }
 
-CommonArgs::CommonArgs() : src_filter(false), is_help(true) { rtp_pcap_rtpmap_init(rtpmap); }
+CommonArgs::CommonArgs() : src_filter(false), is_help(true) {}
 
 void CommonArgs::init_filter(rtp_pcap_filter_t &filter) const {
     memset(&filter, 0, sizeof(filter));
@@ -238,7 +238,7 @@ rtp_pcap_parse_result_t rtp_pcap_parse_common_arg(ArgParser &parser, CommonArgs 
         if (value == NULL) {
             return parse_error;
         }
-        rtp_pcap_rtpmap_parse_arg(args.rtpmap, value);
+        args.rtpmap.parse(value);
         return parse_ok;
     }
 
