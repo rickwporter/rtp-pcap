@@ -1,6 +1,10 @@
 #pragma once
 
 #if INCLUDE_SRTP
-int run_encrypt(const char *progname, int argc, char *argv[]);
-int run_decrypt(const char *progname, int argc, char *argv[]);
+namespace CLI {
+class App;
+}
+
+void add_encrypt_command(CLI::App &app, int &exit_code, const char *progname);
+void add_decrypt_command(CLI::App &app, int &exit_code, const char *progname);
 #endif // INCLUDE_SRTP

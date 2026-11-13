@@ -31,15 +31,22 @@ check_result() {
 
 #################################################
 # Basic help
-HELP_START="  rtp-pcap <action> [arguments]
+HELP_START="Look at RTP in a PCAP file
 
-  Actions
-          list : List all RTP streams
-       summary : Summarize the RTP stream
-       details : Provide RTP packet details
-         stats : Provide RTP packet statistics for a stream
+
+rtp-pcap [OPTIONS] SUBCOMMANDS
+
+
+OPTIONS:
+  -h,     --help              Print this help message and exit
+
+SUBCOMMANDS:
+  list                        List all RTP streams
+  summary                     Summarize the RTP stream
+  details                     Provide RTP packet details
+  stats                       Provide RTP packet statistics for a stream
 "
-# NOTE: SRTP actions deliberately excluded
+# NOTE: SRTP actions deliberately excluded. Help spacing comes from CLI11.
 
 output=$($APP --help 2>&1)
 result=$?
@@ -49,22 +56,37 @@ check_substring "Basic help" "$HELP_START" "$output"
 
 #################################################
 # Action help
-DETAILS_HELP="rtp-pcap details usage:
+DETAILS_HELP="Provide RTP packet details
 
-  rtp-pcap details [arguments]
 
-  Arguments
-      --file  <file>  : PCAP file
-      --filter <dst|src>: Flag to filter on source/destination IP/UDP (default dst)
-      --ip    <addr>  : Source/destination IP address
-      --port  <num>   : Source/destination UDP port
-      --rtpmap <num=string[:num=string[...]]>: RTP payload type to string values
-      --all           : Print all packets in stream
-      --quiet         : Do NOT provide analysis comments on stream
-      --index <pcap|stream>: Index type (default is stream)
-      --time  <none|previous|capture|timeofday|date>: Time display format (default=none)
-      --dtmf  <num>   : RTP payload type for DTMF decodes (default=101)
-      --help          : This message"
+rtp-pcap details [OPTIONS] file
+
+
+POSITIONALS:
+  file TEXT REQUIRED          PCAP file
+
+OPTIONS:
+  -h,     --help              Print this help message and exit
+          --filter TEXT:{dst,src} [dst]  
+                              Flag to filter on source or destination IP/UDP (default dst)
+          --ip addr           Source or destination IP address
+          --port num          Source or destination UDP port
+          --rtpmap num=string[:num=string[...]] 
+                              RTP payload type to string values
+          --all               Print all packets in stream
+          --quiet             Do NOT provide analysis comments on stream
+          --index TEXT:{pcap,stream} [pcap]  
+                              Index type (default pcap)
+          --time TEXT:{none,previous,capture,timeofday,date} [none]  
+                              Time display format (default none)
+          --dtmf INT:INT in [0 - 127] [101]  
+                              RTP payload type for DTMF decodes (default 101)"
+
+output=$($APP details --help 2>&1)
+result=$?
+
+check_result "Details help" 0 $result
+check_substring "Details help" "$DETAILS_HELP" "$output"
 
 output=$($APP details 2>&1)
 result=$?
@@ -72,11 +94,17 @@ result=$?
 check_result "Details help (no args)" 0 $result
 check_substring "Details help (no args)" "$DETAILS_HELP" "$output"
 
-output=$($APP details --not-an-arg 2>&1)
+output=$($APP details --port 1 2>&1)
 result=$?
 
-check_result "Details invalid argument" 255 $result
-check_substring "Details invalid argument" "invalid argument '--not-an-arg'" "$output"
+check_result "Details missing file" 106 $result
+check_substring "Details missing file" "file is required" "$output"
+
+output=$($APP details $EXAMPLES/sip-rtp-gsm.pcap --not-an-arg 2>&1)
+result=$?
+
+check_result "Details invalid argument" 109 $result
+check_substring "Details invalid argument" "not expected: --not-an-arg" "$output"
 
 
 #################################################
@@ -91,7 +119,7 @@ L16_LIST="rtp-pcap found (1673 total packet in capture):
     Payload types (1):
       unknown (99) : 1641"
 
-output=$($APP list --file $EXAMPLES/sip-rtp-l16.pcap 2>&1)
+output=$($APP LIST $EXAMPLES/sip-rtp-l16.pcap --FILTER DST 2>&1)
 result=$?
 
 check_result "L16 list" 0 $result
@@ -116,7 +144,7 @@ L16_DETAILS="     6  Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160,
   1247-1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
-output=$($APP details --file $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 2>&1)
+output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 2>&1)
 result=$?
 
 check_result "L16 details" 0 $result
@@ -136,7 +164,7 @@ G726_DETAILS="***** SSRC changed from 71150055 to 71301759 ******
   2605-3028  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=11988-12410, Time=160 samples/pkt
   3028  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=12411, Time=68000, payload bytes=80"
 
-output=$($APP details --file $EXAMPLES/sip-rtp-g726.pcap 2>&1)
+output=$($APP details $EXAMPLES/sip-rtp-g726.pcap 2>&1)
 result=$?
 
 check_result "G726 details" 0 $result
@@ -150,7 +178,7 @@ GSM_DETAILS="     6  0.023 Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32222, Time
      7-430     Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32223-32645, Time=160 samples/pkt
    430  8.503 Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32646, Time=68000, payload bytes=33"
 
-output=$($APP details --file $EXAMPLES/sip-rtp-gsm.pcap --time capture 2>&1)
+output=$($APP DeTaIlS $EXAMPLES/sip-rtp-gsm.pcap --TiMe CaPtUrE 2>&1)
 result=$?
 
 check_result "GSM details" 0 $result
@@ -163,7 +191,7 @@ G729_ALL="     6      0 Payload type=g729(18), SSRC=0x044559A1, Seq=61831, Time=
      8     20 Payload type=g729(18), SSRC=0x044559A1, Seq=61833, Time=480, payload bytes=20
      9     19 Payload type=g729(18), SSRC=0x044559A1, Seq=61834, Time=640, payload bytes=20"
 
-output=$($APP details --file $EXAMPLES/sip-rtp-g729a.pcap --port 6000 --all --time previous 2>&1)
+output=$($APP details $EXAMPLES/sip-rtp-g729a.pcap --port 6000 --all --time previous 2>&1)
 result=$?
 
 check_result "G729 all" 0 $result
@@ -180,7 +208,7 @@ ILBC_SUMMARY="rtp-pcap summary:
   Payload types (1):
     unknown (99) : 284"
 
-output=$($APP summary --file $EXAMPLES/sip-rtp-ilbc.pcap 2>&1)
+output=$($APP summary $EXAMPLES/sip-rtp-ilbc.pcap 2>&1)
 result=$?
 
 check_result "iLBC summary" 0 $result
@@ -195,7 +223,7 @@ SRTP_DECRYPT="rtp-pcap: decrypt results
     No srtp failures
     wrote 11888 packets to output.pcap"
 
-output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg aes128-sha1-80 --force 2>&1)
+output=$($APP DECRYPT $EXAMPLES/marseillaise-srtp.pcap --key aSBrbm93IGFsbCB5b3VyIGxpdHRsZSBzZWNyZXRz --alg AES128-SHA1-80 --force 2>&1)
 result=$?
 
 check_result "SRTP decrypt (base64)" 0 $result
@@ -212,7 +240,7 @@ SRTP_DECRYPT_DEBUG="SRTP-LOG [3]: srtp: function srtp_unprotect
 SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f
 SRTP-LOG [3]: srtp: estimated u_packet index: 0000000000002e6f"
 
-output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --alg aes128-sha1-80 --debug --force 2>&1)
+output=$($APP decrypt $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --alg aes128-sha1-80 --debug --force 2>&1)
 result=$?
 
 check_result "SRTP decrypt (hex)" 0 $result
@@ -228,7 +256,7 @@ SRTP_DECRYPT="rtp-pcap: decrypt results
         authentication failure: 11888   
     wrote 0 packets to output.pcap"
 
-output=$($APP decrypt --file $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --force 2>&1)
+output=$($APP decrypt $EXAMPLES/marseillaise-srtp.pcap --key 69206b6e6f7720616c6c20796f7572206c6974746c652073656372657473 --force 2>&1)
 result=$?
 
 check_result "SRTP decrypt (bad)" 0 $result
@@ -254,7 +282,7 @@ DTMF_DETAILS="   439  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62726, Time=393
 ***** Codec type change from telephone-events(96) to pcma(8) ******
    483  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62748, Time=3931148121, Mark, payload bytes=240"
 
-output=$($APP details --file $EXAMPLES/SIP_DTMF2.pcap --dtmf 96 --ip 192.168.105.110 2>&1)
+output=$($APP details $EXAMPLES/SIP_DTMF2.pcap --dtmf 96 --ip 192.168.105.110 2>&1)
 result=$?
 
 check_result "DTMF details" 0 $result
@@ -275,7 +303,7 @@ DTMF_DETAILS_MISSED="    27  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52731, T
   1204-1356  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53321-53396, Time=240 samples/pkt
   1356  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53397, Time=767278327, payload bytes=240"
 
-output=$($APP details --file $EXAMPLES/SIP_DTMF2.pcap 2>&1)
+output=$($APP details $EXAMPLES/SIP_DTMF2.pcap 2>&1)
 result=$?
 
 check_result "DTMF details missed" 0 $result
@@ -311,7 +339,7 @@ G726_STATS="  0x043FFA6E:
                mean: 20.000 msecs
                 max: 20.061 msecs"
 
-output=$($APP stats --file $EXAMPLES/sip-rtp-g726.pcap 2>&1)
+output=$($APP stats $EXAMPLES/sip-rtp-g726.pcap 2>&1)
 result=$?
 
 check_result "G726 stats" 0 $result
@@ -335,7 +363,7 @@ DTMF_STATS_MISSED="IP destination: 192.168.105.172:4376, 665 packets (1360 in ca
                mean: 30.001 msecs
                 max: 30.097 msecs"
 
-output=$($APP stats --file $EXAMPLES/SIP_DTMF2.pcap --time none 2>&1)
+output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --time none 2>&1)
 result=$?
 
 check_result "DTMF stats missed" 0 $result
@@ -361,7 +389,7 @@ DTMF_STATS_CHANGE="IP destination: 192.168.105.110:4376, 666 packets (1360 in ca
                mean: 30.001 msecs
                 max: 30.068 msecs"
 
-output=$($APP stats --file $EXAMPLES/SIP_DTMF2.pcap --ip 192.168.105.110 2>&1)
+output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --ip 192.168.105.110 2>&1)
 result=$?
 
 check_result "DTMF stats change" 0 $result

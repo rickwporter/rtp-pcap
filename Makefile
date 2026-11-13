@@ -10,6 +10,7 @@ LXX                 := g++
 INCLUDE_SRTP        ?= 1
 COVERAGE            ?= 0
 CFLAGS              := -O0 -Wall -Werror -ggdb -DINCLUDE_SRTP=$(INCLUDE_SRTP)
+CXXFLAGS            := -std=c++11 -Ithird_party/CLI11/include
 LDFLAGS             := -Bstatic
 
 ifneq ("$(COVERAGE)", "0")
@@ -28,6 +29,9 @@ OBJ_DIR             ?= objs
 COVERAGE_OBJ_DIR    ?= objs-cov
 COVERAGE_DIR        ?= coverage
 COVERAGE_INDEX      := $(COVERAGE_DIR)/index.html
+# CLI11 is included from several translation units. gcovr then tries to merge
+# the same inline functions and aborts. Drop every vendored source from the report.
+GCOVR_FLAGS         := --exclude third_party/
 SRC_DIR             := src
 SEPARATOR           := "****************************"
 APP                 := rtp-pcap
@@ -69,6 +73,7 @@ env: ## Print select environment variables
 	@echo "COBJS           : $(COBJS)"
 	@echo "CPPOBJS         : $(CPPOBJS)"
 	@echo "CFLAGS          : $(CFLAGS)"
+	@echo "CXXFLAGS        : $(CXXFLAGS)"
 	@echo "EXTRA_CFLAGS    : $(EXTRA_CFLAGS)"
 	@echo "LDFLAGS         : $(LDFLAGS)"
 	@echo "EXTRA_LDFLAGS   : $(EXTRA_LDFLAGS)"
@@ -98,7 +103,7 @@ $(OBJ_DIR):
 
 $(CPPOBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)
 	$(ECHO) "Compiling $<..."
-	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(EXTRA_CFLAGS) $<
+	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) $<
 
 $(COBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)
 	$(ECHO) "Compiling $<..."
@@ -129,8 +134,8 @@ coverage: ## Build with coverage, run tests, and report
 	exit $$report
 
 coverage-report: ## Summarize coverage from the latest instrumented test run
-	python3 -m gcovr
+	python3 -m gcovr $(GCOVR_FLAGS)
 	rm -rf $(COVERAGE_DIR)
 	mkdir -p $(COVERAGE_DIR)
-	python3 -m gcovr --html-details $(COVERAGE_INDEX)
+	python3 -m gcovr $(GCOVR_FLAGS) --html-details $(COVERAGE_INDEX)
 	$(ECHO) "Full details avalable at $(COVERAGE_INDEX)"

@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <netinet/in.h>
 
+#include <CLI/CLI.hpp>
+#include <memory>
 #include <pcap/pcap.h>
 
 #include "action_list.h"
@@ -10,14 +12,6 @@
 #include "rtp_utils.h"
 
 using namespace std;
-
-#define ARG_ODD "--odd"
-#define ARG_ALL "--all"
-
-static const ArgDefList list_options = {
-    {ARG_ODD, "", "Include odd # ports in list (default only considers even)"},
-    {ARG_ALL, "", "Print all UDP packets (not just suspected RTP)"},
-};
 
 typedef std::map<uint32_t, uint32_t> map_count_t;
 typedef map_count_t::iterator map_count_i;
@@ -93,66 +87,36 @@ static void rtp_pcap_list(const char *progname, pcap_t *pcap_file, const RtpMap 
     }
 }
 
-static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_LIST, list_options); }
-
-int run_list(const char *progname, int argc, char *argv[]) {
-    bool odd = false;
-    bool all_udp = false;
+struct ListCommand {
     CommonArgs common;
+    bool odd;
+    bool all_udp;
 
-    ArgParser parser(argc, argv);
-    parser.skip_action(ARG_ACT_LIST);
+    ListCommand() : odd(false), all_udp(false) {}
+};
 
-    char error[256];
-    error[0] = '\0';
+static int run_list(const char *progname, ListCommand &command) {
+    RtpMap rtpmap = command.common.create_rtpmap();
 
-    while (parser.next()) {
-        common.is_help = false;
-        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
-        if (parsed == parse_help) {
-            break;
-        }
-        if (parsed == parse_error) {
-            break;
-        }
-        if (parsed == parse_ok) {
-            continue;
-        }
-
-        if (parser.is(ARG_ODD)) {
-            odd = true;
-        } else if (parser.is(ARG_ALL)) {
-            all_udp = true;
-        } else {
-            snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
-            break;
-        }
-    }
-
-    if (common.is_help) {
-        usage(progname);
-        return 0;
-    }
-    if (error[0] != '\0') {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, error);
-        return -1;
-    }
-    std::string ready_error = rtp_pcap_args_ready(common);
-    if (!ready_error.empty()) {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
-        return -1;
-    }
-
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, command.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    common.init_filter(filter);
-    rtp_pcap_list(progname, pcap_file, common.rtpmap, &filter, odd, all_udp);
+    command.common.init_filter(filter);
+    rtp_pcap_list(progname, pcap_file, rtpmap, &filter, command.odd, command.all_udp);
     pcap_close(pcap_file);
     return 0;
+}
+
+void add_list_command(CLI::App &app, int &exit_code, const char *progname) {
+    shared_ptr<ListCommand> command = make_shared<ListCommand>();
+    CLI::App *cmd = rtp_pcap_add_command(app, ARG_ACT_LIST, "List all RTP streams");
+    rtp_pcap_add_common_options(cmd, command->common);
+    cmd->add_flag("--odd", command->odd, "Include odd # ports in list (default only considers even)");
+    cmd->add_flag("--all", command->all_udp, "Print all UDP packets (not just suspected RTP)");
+
+    string program(progname);
+    cmd->callback([&exit_code, program, command]() { exit_code = run_list(program.c_str(), *command); });
 }

@@ -2,6 +2,8 @@
 #include <cstdio>
 #include <netinet/in.h>
 
+#include <CLI/CLI.hpp>
+#include <memory>
 #include <pcap/pcap.h>
 
 #include "action_summary.h"
@@ -73,58 +75,30 @@ static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpM
     }
 }
 
-static void usage(const char *progname) { rtp_pcap_action_usage(progname, ARG_ACT_SUMMARY, ArgDefList()); }
-
-int run_summary(const char *progname, int argc, char *argv[]) {
+struct SummaryCommand {
     CommonArgs common;
+};
 
-    ArgParser parser(argc, argv);
-    parser.skip_action(ARG_ACT_SUMMARY);
+static int run_summary(const char *progname, SummaryCommand &command) {
+    RtpMap rtpmap = command.common.create_rtpmap();
 
-    char error[256];
-    error[0] = '\0';
-
-    while (parser.next()) {
-        common.is_help = false;
-        rtp_pcap_parse_result_t parsed = rtp_pcap_parse_common_arg(parser, common, error, sizeof(error));
-        if (parsed == parse_help) {
-            break;
-        }
-        if (parsed == parse_error) {
-            break;
-        }
-        if (parsed == parse_ok) {
-            continue;
-        }
-
-        snprintf(error, sizeof(error), "invalid argument '%s'", parser.arg());
-        break;
-    }
-
-    if (common.is_help) {
-        usage(progname);
-        return 0;
-    }
-    if (error[0] != '\0') {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, error);
-        return -1;
-    }
-    std::string ready_error = rtp_pcap_args_ready(common);
-    if (!ready_error.empty()) {
-        usage(progname);
-        fprintf(stdout, "\n%s: %s\n", progname, ready_error.c_str());
-        return -1;
-    }
-
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, command.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    common.init_filter(filter);
-    rtp_pcap_summary(progname, pcap_file, common.rtpmap, &filter);
+    command.common.init_filter(filter);
+    rtp_pcap_summary(progname, pcap_file, rtpmap, &filter);
     pcap_close(pcap_file);
     return 0;
+}
+
+void add_summary_command(CLI::App &app, int &exit_code, const char *progname) {
+    shared_ptr<SummaryCommand> command = make_shared<SummaryCommand>();
+    CLI::App *cmd = rtp_pcap_add_command(app, ARG_ACT_SUMMARY, "Summarize the RTP stream");
+    rtp_pcap_add_common_options(cmd, command->common);
+
+    string program(progname);
+    cmd->callback([&exit_code, program, command]() { exit_code = run_summary(program.c_str(), *command); });
 }
