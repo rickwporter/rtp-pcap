@@ -75,30 +75,30 @@ static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpM
     }
 }
 
-struct SummaryCommand {
+struct SummaryArgs {
     CommonArgs common;
 };
 
-static int run_summary(const char *progname, SummaryCommand &command) {
-    RtpMap rtpmap = command.common.create_rtpmap();
+static int run_summary(const char *progname, SummaryArgs &args) {
+    RtpMap rtpmap = args.common.create_rtpmap();
 
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, command.common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    command.common.init_filter(filter);
+    args.common.init_filter(filter);
     rtp_pcap_summary(progname, pcap_file, rtpmap, &filter);
     pcap_close(pcap_file);
     return 0;
 }
 
 void add_summary_command(CLI::App &parent, int &exit_code, const char *progname) {
-    shared_ptr<SummaryCommand> command = make_shared<SummaryCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_SUMMARY, "Summarize the RTP stream");
-    rtp_pcap_add_common_options(cmd, command->common);
+    shared_ptr<SummaryArgs> args = make_shared<SummaryArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_SUMMARY, "Summarize the RTP stream");
+    rtp_pcap_add_common_options(subcmd, args->common);
 
     string program(progname);
-    cmd->callback([&exit_code, program, command]() { exit_code = run_summary(program.c_str(), *command); });
+    subcmd->callback([&exit_code, program, args]() { exit_code = run_summary(program.c_str(), *args); });
 }

@@ -217,32 +217,32 @@ static void rtp_pcap_stats(pcap_t *pcap_file, rtp_pcap_filter_t *filter, time_di
     return;
 }
 
-struct StatsCommand {
+struct StatsArgs {
     CommonArgs common;
     std::string time;
 
-    StatsCommand() : time("capture") {}
+    StatsArgs() : time("capture") {}
 };
 
-static int run_stats(const char *progname, StatsCommand &command) {
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, command.common.filename.c_str());
+static int run_stats(const char *progname, StatsArgs &args) {
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    command.common.init_filter(filter);
-    rtp_pcap_stats(pcap_file, &filter, rtp_pcap_time_display_parse(command.time));
+    args.common.init_filter(filter);
+    rtp_pcap_stats(pcap_file, &filter, rtp_pcap_time_display_parse(args.time));
     pcap_close(pcap_file);
     return 0;
 }
 
 void add_stats_command(CLI::App &parent, int &exit_code, const char *progname) {
-    shared_ptr<StatsCommand> command = make_shared<StatsCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
-    rtp_pcap_add_common_options(cmd, command->common);
-    rtp_pcap_add_time_option(cmd, command->time, "capture", "Time display format (default capture)");
+    shared_ptr<StatsArgs> args = make_shared<StatsArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
+    rtp_pcap_add_common_options(subcmd, args->common);
+    rtp_pcap_add_time_option(subcmd, args->time, "capture", "Time display format (default capture)");
 
     string program(progname);
-    cmd->callback([&exit_code, program, command]() { exit_code = run_stats(program.c_str(), *command); });
+    subcmd->callback([&exit_code, program, args]() { exit_code = run_stats(program.c_str(), *args); });
 }

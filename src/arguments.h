@@ -68,7 +68,7 @@ class App;
 }
 
 // Subcommand with case-insensitive name and flag matching, including --help.
-CLI::App *rtp_pcap_add_command(CLI::App &app, const std::string &name, const std::string &description);
+CLI::App *rtp_pcap_add_subcommand(CLI::App &parent, const std::string &name, const std::string &description);
 
 // Options shared by every action. The PCAP path is a required positional.
 // Keyword values (--filter) are case-insensitive.

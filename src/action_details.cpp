@@ -420,7 +420,7 @@ static void rtp_pcap_details(
     } while (1);
 }
 
-struct DetailsCommand {
+struct DetailsArgs {
     CommonArgs common;
     bool print_all;
     bool quiet;
@@ -428,42 +428,42 @@ struct DetailsCommand {
     std::string time;
     int dtmf;
 
-    DetailsCommand() : print_all(false), quiet(false), index("pcap"), time("none"), dtmf(RTP_PTYPE_DTMF_DEFAULT) {}
+    DetailsArgs() : print_all(false), quiet(false), index("pcap"), time("none"), dtmf(RTP_PTYPE_DTMF_DEFAULT) {}
 };
 
-static int run_details(const char *progname, DetailsCommand &command) {
-    RtpMap rtpmap = command.common.create_rtpmap();
-    uint8_t dtmf_decode = static_cast<uint8_t>(command.dtmf);
+static int run_details(const char *progname, DetailsArgs &args) {
+    RtpMap rtpmap = args.common.create_rtpmap();
+    uint8_t dtmf_decode = static_cast<uint8_t>(args.dtmf);
     rtpmap[dtmf_decode] = "telephone-events";
 
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, command.common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    command.common.init_filter(filter);
-    index_display_t index_type = (command.index == "pcap" ? idisp_pcap : idisp_stream);
-    time_display_t time_type = rtp_pcap_time_display_parse(command.time);
-    rtp_pcap_details(pcap_file, rtpmap, &filter, !command.print_all, !command.quiet, dtmf_decode, time_type, index_type);
+    args.common.init_filter(filter);
+    index_display_t index_type = (args.index == "pcap" ? idisp_pcap : idisp_stream);
+    time_display_t time_type = rtp_pcap_time_display_parse(args.time);
+    rtp_pcap_details(pcap_file, rtpmap, &filter, !args.print_all, !args.quiet, dtmf_decode, time_type, index_type);
     pcap_close(pcap_file);
     return 0;
 }
 
 void add_details_command(CLI::App &parent, int &exit_code, const char *progname) {
-    shared_ptr<DetailsCommand> command = make_shared<DetailsCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_DETAILS, "Provide RTP packet details");
-    rtp_pcap_add_common_options(cmd, command->common);
-    cmd->add_flag("--all", command->print_all, "Print all packets in stream");
-    cmd->add_flag("--quiet", command->quiet, "Do NOT provide analysis comments on stream");
-    cmd->add_option("--index", command->index, "Index type (default pcap)")
+    shared_ptr<DetailsArgs> args = make_shared<DetailsArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_DETAILS, "Provide RTP packet details");
+    rtp_pcap_add_common_options(subcmd, args->common);
+    subcmd->add_flag("--all", args->print_all, "Print all packets in stream");
+    subcmd->add_flag("--quiet", args->quiet, "Do NOT provide analysis comments on stream");
+    subcmd->add_option("--index", args->index, "Index type (default pcap)")
         ->default_val("pcap")
         ->transform(CLI::IsMember({"pcap", "stream"}, CLI::ignore_case));
-    rtp_pcap_add_time_option(cmd, command->time, "none", "Time display format (default none)");
-    cmd->add_option("--dtmf", command->dtmf, "RTP payload type for DTMF decodes (default 101)")
+    rtp_pcap_add_time_option(subcmd, args->time, "none", "Time display format (default none)");
+    subcmd->add_option("--dtmf", args->dtmf, "RTP payload type for DTMF decodes (default 101)")
         ->default_val(RTP_PTYPE_DTMF_DEFAULT)
         ->check(CLI::Range(0, 127));
 
     string program(progname);
-    cmd->callback([&exit_code, program, command]() { exit_code = run_details(program.c_str(), *command); });
+    subcmd->callback([&exit_code, program, args]() { exit_code = run_details(program.c_str(), *args); });
 }

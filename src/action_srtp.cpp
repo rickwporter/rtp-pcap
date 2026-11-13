@@ -338,7 +338,7 @@ static void rtp_pcap_srtp(
     pcap_close(output);
 }
 
-struct SrtpCommand {
+struct SrtpArgs {
     CommonArgs common;
     std::string alg;
     std::string key;
@@ -346,41 +346,41 @@ struct SrtpCommand {
     bool force;
     bool debug;
 
-    SrtpCommand() : alg("aes128-sha1-32"), outfile("output.pcap"), force(false), debug(false) {}
+    SrtpArgs() : alg("aes128-sha1-32"), outfile("output.pcap"), force(false), debug(false) {}
 };
 
-static int run_srtp_action(const char *progname, SrtpCommand &command, cryptop_t op) {
+static int run_srtp_action(const char *progname, SrtpArgs &args, cryptop_t op) {
     srtp_algorithm_t alg = srtp_alg_aes128_sha1_32bit;
-    if (command.alg == "aes128-sha1-80") {
+    if (args.alg == "aes128-sha1-80") {
         alg = srtp_alg_aes128_sha1_80bit;
     }
 
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, command.common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    command.common.init_filter(filter);
-    rtp_pcap_srtp(progname, pcap_file, &filter, op, alg, command.force, command.debug, command.key, command.outfile);
+    args.common.init_filter(filter);
+    rtp_pcap_srtp(progname, pcap_file, &filter, op, alg, args.force, args.debug, args.key, args.outfile);
     pcap_close(pcap_file);
     return 0;
 }
 
 static void add_srtp_command(CLI::App &parent, int &exit_code, const char *progname, const char *name, const char *description, cryptop_t op) {
-    shared_ptr<SrtpCommand> command = make_shared<SrtpCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(parent, name, description);
-    rtp_pcap_add_common_options(cmd, command->common);
-    cmd->add_option("--alg", command->alg, "Cryptographic algorithm suite (default aes128-sha1-32)")
+    shared_ptr<SrtpArgs> args = make_shared<SrtpArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, name, description);
+    rtp_pcap_add_common_options(subcmd, args->common);
+    subcmd->add_option("--alg", args->alg, "Cryptographic algorithm suite (default aes128-sha1-32)")
         ->default_val("aes128-sha1-32")
         ->transform(CLI::IsMember({"aes128-sha1-32", "aes128-sha1-80"}, CLI::ignore_case));
-    cmd->add_option("--key", command->key, "Master key in hexadecimal or base64 format")->required()->type_name("hex|base64");
-    cmd->add_option("--output", command->outfile, "Output filename (default output.pcap)")->default_val("output.pcap")->type_name("filename");
-    cmd->add_flag("--force", command->force, "Overwrite existing output file");
-    cmd->add_flag("--debug", command->debug, "Turn on libSRTP debug");
+    subcmd->add_option("--key", args->key, "Master key in hexadecimal or base64 format")->required()->type_name("hex|base64");
+    subcmd->add_option("--output", args->outfile, "Output filename (default output.pcap)")->default_val("output.pcap")->type_name("filename");
+    subcmd->add_flag("--force", args->force, "Overwrite existing output file");
+    subcmd->add_flag("--debug", args->debug, "Turn on libSRTP debug");
 
     string program(progname);
-    cmd->callback([&exit_code, program, command, op]() { exit_code = run_srtp_action(program.c_str(), *command, op); });
+    subcmd->callback([&exit_code, program, args, op]() { exit_code = run_srtp_action(program.c_str(), *args, op); });
 }
 
 void add_encrypt_command(CLI::App &parent, int &exit_code, const char *progname) {

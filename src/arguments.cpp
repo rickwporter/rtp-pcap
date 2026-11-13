@@ -126,13 +126,13 @@ void CommonArgs::init_filter(rtp_pcap_filter_t &out) const {
     }
 }
 
-CLI::App *rtp_pcap_add_command(CLI::App &app, const string &name, const string &description) {
-    CLI::App *cmd = app.add_subcommand(name, description);
+CLI::App *rtp_pcap_add_subcommand(CLI::App &parent, const string &name, const string &description) {
+    CLI::App *subcmd = parent.add_subcommand(name, description);
     // Help is created before option defaults are copied, so set both again here.
-    cmd->ignore_case();
-    cmd->option_defaults()->ignore_case();
-    cmd->set_help_flag("-h,--help", "Print this help message and exit");
-    return cmd;
+    subcmd->ignore_case();
+    subcmd->option_defaults()->ignore_case();
+    subcmd->set_help_flag("-h,--help", "Print this help message and exit");
+    return subcmd;
 }
 
 void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args) {

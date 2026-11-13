@@ -87,36 +87,36 @@ static void rtp_pcap_list(const char *progname, pcap_t *pcap_file, const RtpMap 
     }
 }
 
-struct ListCommand {
+struct ListArgs {
     CommonArgs common;
     bool odd;
     bool all_udp;
 
-    ListCommand() : odd(false), all_udp(false) {}
+    ListArgs() : odd(false), all_udp(false) {}
 };
 
-static int run_list(const char *progname, ListCommand &command) {
-    RtpMap rtpmap = command.common.create_rtpmap();
+static int run_list(const char *progname, ListArgs &args) {
+    RtpMap rtpmap = args.common.create_rtpmap();
 
-    pcap_t *pcap_file = rtp_pcap_open_input(progname, command.common.filename.c_str());
+    pcap_t *pcap_file = rtp_pcap_open_input(progname, args.common.filename.c_str());
     if (NULL == pcap_file) {
         return -2;
     }
 
     rtp_pcap_filter_t filter;
-    command.common.init_filter(filter);
-    rtp_pcap_list(progname, pcap_file, rtpmap, &filter, command.odd, command.all_udp);
+    args.common.init_filter(filter);
+    rtp_pcap_list(progname, pcap_file, rtpmap, &filter, args.odd, args.all_udp);
     pcap_close(pcap_file);
     return 0;
 }
 
 void add_list_command(CLI::App &parent, int &exit_code, const char *progname) {
-    shared_ptr<ListCommand> command = make_shared<ListCommand>();
-    CLI::App *cmd = rtp_pcap_add_command(parent, ARG_ACT_LIST, "List all RTP streams");
-    rtp_pcap_add_common_options(cmd, command->common);
-    cmd->add_flag("--odd", command->odd, "Include odd # ports in list (default only considers even)");
-    cmd->add_flag("--all", command->all_udp, "Print all UDP packets (not just suspected RTP)");
+    shared_ptr<ListArgs> args = make_shared<ListArgs>();
+    CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_LIST, "List all RTP streams");
+    rtp_pcap_add_common_options(subcmd, args->common);
+    subcmd->add_flag("--odd", args->odd, "Include odd # ports in list (default only considers even)");
+    subcmd->add_flag("--all", args->all_udp, "Print all UDP packets (not just suspected RTP)");
 
     string program(progname);
-    cmd->callback([&exit_code, program, command]() { exit_code = run_list(program.c_str(), *command); });
+    subcmd->callback([&exit_code, program, args]() { exit_code = run_list(program.c_str(), *args); });
 }
