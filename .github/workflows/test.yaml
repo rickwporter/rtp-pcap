@@ -1,0 +1,26 @@
+name: Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: dependencies
+      run: sudo apt install libsrtp2-dev libpcap-dev
+    - name: uname
+      run: uname -a
+    - name: prereq
+      run: make prereq
+    - name: coverage
+      run: make env coverage
