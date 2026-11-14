@@ -7,20 +7,12 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-x86:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: dependencies
-      run: sudo apt install libsrtp2-dev libpcap-dev
-    - name: uname
-      run: uname -a
-    - name: build
-      run: make env app
-
-  build-arm:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
