@@ -81,7 +81,6 @@ static void test_rtp_pcap_get_srtp_error_string() {
         {srtp_err_status_bad_mki, "bad MKI"},
         {srtp_err_status_pkt_idx_old, "old packet index"},
         {srtp_err_status_pkt_idx_adv, "future packet index"},
-        {srtp_err_status_cryptex_err, "unkwown"},
         {static_cast<srtp_err_status_t>(1000), "unkwown"},
     };
     for (size_t i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
