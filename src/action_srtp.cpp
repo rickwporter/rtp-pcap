@@ -56,7 +56,7 @@ const char *rtp_pcap_cryptop_string(cryptop_t op) {
     return "unknown";
 }
 
-static inline const char *rtp_pcap_get_srtp_error_string(srtp_err_status_t status) {
+const char *rtp_pcap_get_srtp_error_string(srtp_err_status_t status) {
     switch (status) {
     case srtp_err_status_ok:
         return "none";
