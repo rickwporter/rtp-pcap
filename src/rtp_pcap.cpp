@@ -26,7 +26,7 @@ static bool usage_for_bare_action(CLI::App &app, const char *action) {
     return false;
 }
 
-int main(int argc, char *argv[]) {
+int rtp_pcap_run(int argc, char *argv[]) {
     const char *slash = strrchr(argv[0], '/');
     const char *progname = (NULL == slash ? argv[0] : slash + 1);
     int exit_code = 0;

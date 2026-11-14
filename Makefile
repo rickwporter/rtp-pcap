@@ -31,7 +31,7 @@ COVERAGE_DIR        ?= coverage
 COVERAGE_INDEX      := $(COVERAGE_DIR)/index.html
 # CLI11 is included from several translation units. gcovr then tries to merge
 # the same inline functions and aborts. Drop every vendored source from the report.
-GCOVR_FLAGS         := --exclude third_party/
+GCOVR_FLAGS         := --exclude third_party/ --exclude tests/
 SRC_DIR             := src
 SEPARATOR           := "****************************"
 APP                 := rtp-pcap
@@ -42,6 +42,7 @@ CPPSRCS             := arguments.cpp
 CPPSRCS             += packet_utilities.cpp
 CPPSRCS             += time_utilities.cpp
 CPPSRCS             += rtp_pcap.cpp
+CPPSRCS             += main.cpp
 CPPSRCS             += action_summary.cpp
 CPPSRCS             += action_details.cpp
 CPPSRCS             += action_list.cpp
@@ -101,11 +102,11 @@ $(OBJ_DIR):
 	$(ECHO) "Making $@..."
 	$(QUIET)mkdir -p $@
 
-$(CPPOBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp $(OBJ_DIR)
+$(CPPOBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(ECHO) "Compiling $<..."
 	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) $<
 
-$(COBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(OBJ_DIR)
+$(COBJS): $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(ECHO) "Compiling $<..."
 	$(QUIET)$(CC) -c -o $@ $(CFLAGS) $(EXTRA_CFLAGS) $<
 
@@ -113,9 +114,43 @@ $(APP): $(COBJS) $(CPPOBJS)
 	$(ECHO) "Linking $@..."
 	$(QUIET)$(LXX) -o $@ $(COBJS) $(CPPOBJS) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
+# Unit tests link every object except the process entry, which defines main.
+UNIT_TEST_BIN       := $(OBJ_DIR)/unit-tests
+UNIT_TEST_SRCS      := tests/unit_tests.cpp
+UNIT_TEST_SRCS      += tests/test_action_details.cpp
+UNIT_TEST_SRCS      += tests/test_action_list.cpp
+ifneq ("$(INCLUDE_SRTP)", "0")
+UNIT_TEST_SRCS      += tests/test_action_srtp.cpp
+endif
+UNIT_TEST_SRCS      += tests/test_action_stats.cpp
+UNIT_TEST_SRCS      += tests/test_action_summary.cpp
+UNIT_TEST_SRCS      += tests/test_arguments.cpp
+UNIT_TEST_SRCS      += tests/test_base64.cpp
+UNIT_TEST_SRCS      += tests/test_hexutils.cpp
+UNIT_TEST_SRCS      += tests/test_packet_utilities.cpp
+UNIT_TEST_SRCS      += tests/test_rtp_pcap.cpp
+UNIT_TEST_SRCS      += tests/test_rtp_utils.cpp
+UNIT_TEST_SRCS      += tests/test_time_utilities.cpp
+UNIT_TEST_OBJS       = $(patsubst tests/%.cpp,$(OBJ_DIR)/%.o,$(UNIT_TEST_SRCS))
+LIB_CPPOBJS          = $(filter-out $(OBJ_DIR)/main.o,$(CPPOBJS))
+
+$(UNIT_TEST_OBJS): $(OBJ_DIR)/%.o : tests/%.cpp | $(OBJ_DIR)
+	$(ECHO) "Compiling $<..."
+	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) -I$(SRC_DIR) $<
+
+$(UNIT_TEST_BIN): $(COBJS) $(LIB_CPPOBJS) $(UNIT_TEST_OBJS)
+	$(ECHO) "Linking $@..."
+	$(QUIET)$(LXX) -o $@ $(COBJS) $(LIB_CPPOBJS) $(UNIT_TEST_OBJS) $(LDFLAGS) $(EXTRA_LDFLAGS)
+
 app: $(APP) ## Build the application
 
-test: ## Run test script
+test: unit-test integration-test ## Run unit and integration tests
+
+unit-test: $(UNIT_TEST_BIN) ## Run unit tests
+	$(ECHO) "Running unit tests..."
+	$(QUIET)./$(UNIT_TEST_BIN)
+
+integration-test: ## Run test script
 	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./test.sh
 
 app-clean: ## Cleanup the application
@@ -123,12 +158,12 @@ app-clean: ## Cleanup the application
 
 ###############################
 ##@ Coverage
-.PHONY: test coverage coverage-run coverage-report
+.PHONY: test unit-test integration-test coverage coverage-run coverage-report
 
 coverage: ## Build with coverage, run tests, and report
 	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
 	COVERAGE=1 $(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR)
-	$(MAKE) coverage-run
+	COVERAGE=1 $(MAKE) coverage-run OBJ_DIR=$(COVERAGE_OBJ_DIR)
 
 coverage-run: test coverage-report ## Run the coverage tests (without rebuild)
 
