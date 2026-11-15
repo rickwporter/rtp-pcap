@@ -72,7 +72,7 @@ rtp-pcap found (433 total packet in capture):
       g729 (18) : 425
 $ ./rtp-pcap details examples/sip-rtp-g729a.pcap --port 6000
      6  Payload type=g729(18), SSRC=0x044559A1, Seq=61831, Time=160, Mark, payload bytes=20
-     7-430  Payload type=g729(18), SSRC=0x044559A1, Seq=61832-62254, Time=160 samples/pkt
+     7-429  Payload type=g729(18), SSRC=0x044559A1, Seq=61832-62254, Time=160 samples/pkt
    430  Payload type=g729(18), SSRC=0x044559A1, Seq=62255, Time=68000, payload bytes=20
 $ 
 ```
@@ -84,7 +84,7 @@ Here's a quick example of decrypting an encrypted SRTP stream:
 #
 $ ./rtp-pcap details examples/marseillaise-srtp.pcap 
      1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=170
-     2-11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
+     2-11887  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
  11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=11887, Time=1901920, payload bytes=170
 
 #
@@ -103,7 +103,7 @@ rtp-pcap: decrypt results
 #
 $ ./rtp-pcap details decrypted.pcap 
      1  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=0, Time=0, Mark, payload bytes=160
-     2-11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
+     2-11887  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=1-11886, Time=160 samples/pkt
  11888  Payload type=pcma(8), SSRC=0xDEADBEEF, Seq=11887, Time=1901920, payload bytes=160
 $ 
 ```

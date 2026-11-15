@@ -198,6 +198,49 @@ static void test_rtp_pcap_details_packet_summary() {
     EXPECT_STREQ(output, "     1-3  Payload type=pcmu(0), SSRC=0x00000010, Seq=65535-0, Time=160 samples/pkt\n");
 }
 
+static void add_voice(PcapFile &file, uint16_t sequence, uint32_t timestamp, uint8_t payload_type, uint8_t marker, uint16_t dport, uint32_t ts_sec) {
+    file.add_udp(ipv4(10, 0, 0, 1), ipv4(10, 0, 0, 2), 4002, dport, voice_packet(sequence, timestamp, payload_type, marker), false, ts_sec, 0);
+}
+
+static void test_details_summary_indices_skip_displayed_packets() {
+    // Capture indices are not consecutive: a non-stream packet sits between
+    // each run of suppressed packets, including immediately before the packet
+    // that is printed in full.
+    PcapFile file;
+    uint32_t ts = 0;
+    add_voice(file, 1, 0, 0, 1, 4000, ts++);
+    add_voice(file, 0, 0, 0, 0, 4001, ts++);
+    add_voice(file, 2, 160, 0, 0, 4000, ts++);
+    add_voice(file, 0, 0, 0, 0, 4001, ts++);
+    add_voice(file, 3, 320, 0, 0, 4000, ts++);
+    add_voice(file, 0, 0, 0, 0, 4001, ts++);
+    add_voice(file, 4, 480, 0, 0, 4000, ts++);
+    add_voice(file, 5, 640, 8, 0, 4000, ts++);
+    add_voice(file, 0, 0, 0, 0, 4001, ts++);
+    add_voice(file, 6, 800, 8, 0, 4000, ts++);
+    add_voice(file, 0, 0, 0, 0, 4001, ts++);
+    add_voice(file, 7, 960, 8, 0, 4000, ts++);
+    add_voice(file, 0, 0, 0, 0, 4001, ts++);
+    add_voice(file, 8, 1120, 8, 0, 4000, ts++);
+
+    std::string path = g_tmpdir + "/details-summary-index.pcap";
+    file.write(path);
+
+    CmdResult pcap_index = run_cli({"details", path, "--quiet"});
+    EXPECT(pcap_index.code == 0);
+    EXPECT_CONTAINS(pcap_index.output, "     3-5  Payload type=pcmu(0), SSRC=0x00000099, Seq=2-3, Time=160 samples/pkt\n");
+    EXPECT_CONTAINS(pcap_index.output, "     7  Payload type=pcmu(0), SSRC=0x00000099, Seq=4, Time=480, payload bytes=160\n");
+    EXPECT_CONTAINS(pcap_index.output, "    10-12  Payload type=pcma(8), SSRC=0x00000099, Seq=6-7, Time=160 samples/pkt\n");
+    EXPECT_CONTAINS(pcap_index.output, "    14  Payload type=pcma(8), SSRC=0x00000099, Seq=8, Time=1120, payload bytes=160\n");
+
+    CmdResult stream_index = run_cli({"details", path, "--quiet", "--index", "stream"});
+    EXPECT(stream_index.code == 0);
+    EXPECT_CONTAINS(stream_index.output, "     2-3  Payload type=pcmu(0), SSRC=0x00000099, Seq=2-3, Time=160 samples/pkt\n");
+    EXPECT_CONTAINS(stream_index.output, "     4  Payload type=pcmu(0), SSRC=0x00000099, Seq=4, Time=480, payload bytes=160\n");
+    EXPECT_CONTAINS(stream_index.output, "     6-7  Payload type=pcma(8), SSRC=0x00000099, Seq=6-7, Time=160 samples/pkt\n");
+    EXPECT_CONTAINS(stream_index.output, "     8  Payload type=pcma(8), SSRC=0x00000099, Seq=8, Time=1120, payload bytes=160\n");
+}
+
 static void test_rtp_pcap_details() {
     std::vector<std::vector<uint8_t>> stream;
     stream.push_back(make_rtp(0, 1, 0, 0x99, 0, 0, std::vector<uint8_t>(4, 0)));
@@ -250,6 +293,7 @@ void test_action_details() {
     test_rtp_pcap_details_analyze();
     test_rtp_pcap_details_packet_display();
     test_rtp_pcap_details_packet_summary();
+    test_details_summary_indices_skip_displayed_packets();
     test_rtp_pcap_details();
     test_add_details_command();
 }

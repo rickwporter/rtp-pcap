@@ -237,8 +237,12 @@ static void rtp_pcap_details(
     uint32_t total_pkt_count = 0;
     uint32_t stream_pkt_count = 0;
     uint32_t index_cur;
-    uint32_t index_sup_first;
-    uint32_t index_sup_last;
+    // Summary covers suppressed packets other than the one printed in full.
+    // The end index is the previous stream packet, which is not necessarily
+    // the previous capture index when other packets sit between them.
+    uint32_t index_sup_first = 0;
+    uint32_t index_sup_end = 0;
+    uint32_t index_held = 0;
     char time_display[128]; // holds time strings
     char time_summary[128]; // holds blank spaces for summaries
     char pkt_display[512];
@@ -261,20 +265,22 @@ static void rtp_pcap_details(
         if (0 != result) {
             // if we have any "suppressed packets", print out the balance
             if (n_suppressed) {
-                rtp_pcap_details_packet_summary(
-                    pkt_summary,
-                    sizeof(pkt_summary),
-                    &last_rtp,
-                    n_suppressed,
-                    index_sup_first,
-                    index_sup_last,
-                    time_summary,
-                    rtpmap,
-                    dtmf_decode,
-                    last_dtmf_event,
-                    samples_per_packet
-                );
-                fprintf(stdout, "%s", pkt_summary);
+                if (n_suppressed > 1) {
+                    rtp_pcap_details_packet_summary(
+                        pkt_summary,
+                        sizeof(pkt_summary),
+                        &last_rtp,
+                        n_suppressed,
+                        index_sup_first,
+                        index_sup_end,
+                        time_summary,
+                        rtpmap,
+                        dtmf_decode,
+                        last_dtmf_event,
+                        samples_per_packet
+                    );
+                    fprintf(stdout, "%s", pkt_summary);
+                }
                 fprintf(stdout, "%s", pkt_display);
             }
             break;
@@ -330,7 +336,7 @@ static void rtp_pcap_details(
                         &last_rtp,
                         n_suppressed,
                         index_sup_first,
-                        index_sup_last,
+                        index_sup_end,
                         time_summary,
                         rtpmap,
                         dtmf_decode,
@@ -365,11 +371,11 @@ static void rtp_pcap_details(
             // buffer the data, so we can dump it out at the end of the file
             n_suppressed++;
             if (n_suppressed == 1) {
-                index_sup_first = (index_type == idisp_stream ? stream_pkt_count : (index_type == idisp_pcap ? total_pkt_count : 0));
-                index_sup_last = index_sup_first;
+                index_sup_first = index_cur;
             } else {
-                index_sup_last = (index_type == idisp_stream ? stream_pkt_count : (index_type == idisp_pcap ? total_pkt_count : 0));
+                index_sup_end = index_held;
             }
+            index_held = index_cur;
 
             rtp_pcap_details_packet_display(
                 pkt_display, sizeof(pkt_display), rtph, index_cur, time_display, rtpmap, dtmf_decode, rtp_pcap_packet_get_rtp_payload_length(&packet)

@@ -136,19 +136,19 @@ check_substring "L16 list" "$L16_LIST" "$output"
 #################################################
 # L16 details
 L16_DETAILS="     6  Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160, Mark, payload bytes=640
-     7-430  Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
+     7-429  Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
    430  Payload type=l16(99), SSRC=0x043DA974, Seq=20800, Time=68000, payload bytes=640
 ***** SSRC changed from 71149940 to 71301644 ******
    439  Payload type=l16(99), SSRC=0x043FFA0C, Seq=50505, Time=320, Mark, payload bytes=1280
-   440-863  Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
+   440-862  Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
    863  Payload type=l16(99), SSRC=0x043FFA0C, Seq=50929, Time=136000, payload bytes=1280
 ***** SSRC changed from 71301644 to 71149957 ******
    872  Payload type=l16(99), SSRC=0x043DA985, Seq=14108, Time=256, Mark, payload bytes=512
-   873-1237  Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
+   873-1236  Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
   1237  Payload type=l16(99), SSRC=0x043DA985, Seq=14473, Time=93696, payload bytes=512
 ***** SSRC changed from 71149957 to 71301665 ******
   1246  Payload type=l16(99), SSRC=0x043FFA21, Seq=50794, Time=960, Mark, payload bytes=1920
-  1247-1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
+  1247-1669  Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670  Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
 output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 2>&1)
@@ -158,19 +158,19 @@ check_result "L16 details" 0 $result
 check_substring "L16 details" "$L16_DETAILS" "$output"
 
 L16_PREV="     6      0 Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160, Mark, payload bytes=640
-     7-430     Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
+     7-429     Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
    430     20 Payload type=l16(99), SSRC=0x043DA974, Seq=20800, Time=68000, payload bytes=640
 ***** SSRC changed from 71149940 to 71301644 ******
    439    131 Payload type=l16(99), SSRC=0x043FFA0C, Seq=50505, Time=320, Mark, payload bytes=1280
-   440-863     Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
+   440-862     Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
    863     20 Payload type=l16(99), SSRC=0x043FFA0C, Seq=50929, Time=136000, payload bytes=1280
 ***** SSRC changed from 71301644 to 71149957 ******
    872    144 Payload type=l16(99), SSRC=0x043DA985, Seq=14108, Time=256, Mark, payload bytes=512
-   873-1237     Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
+   873-1236     Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
   1237     32 Payload type=l16(99), SSRC=0x043DA985, Seq=14473, Time=93696, payload bytes=512
 ***** SSRC changed from 71149957 to 71301665 ******
   1246    132 Payload type=l16(99), SSRC=0x043FFA21, Seq=50794, Time=960, Mark, payload bytes=1920
-  1247-1670     Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
+  1247-1669     Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670     20 Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
 output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time previous 2>&1)
@@ -180,19 +180,19 @@ check_result "L16 previous" 0 $result
 check_substring "L16 previous" "$L16_PREV" "$output"
 
 L16_TOD="     6 15:03:00.394 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160, Mark, payload bytes=640
-     7-430               Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
+     7-429               Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
    430 15:03:08.874 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20800, Time=68000, payload bytes=640
 ***** SSRC changed from 71149940 to 71301644 ******
    439 15:03:09.004 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50505, Time=320, Mark, payload bytes=1280
-   440-863               Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
+   440-862               Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
    863 15:03:17.484 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50929, Time=136000, payload bytes=1280
 ***** SSRC changed from 71301644 to 71149957 ******
    872 15:03:17.629 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14108, Time=256, Mark, payload bytes=512
-   873-1237               Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
+   873-1236               Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
   1237 15:03:29.309 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14473, Time=93696, payload bytes=512
 ***** SSRC changed from 71149957 to 71301665 ******
   1246 15:03:29.441 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=50794, Time=960, Mark, payload bytes=1920
-  1247-1670               Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
+  1247-1669               Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670 15:03:37.921 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
 output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time timeofday 2>&1)
@@ -203,19 +203,19 @@ check_substring "L16 timeofday" "$L16_TOD" "$output"
 
 
 L16_DATE="     6 2016-11-26 15:03:00.394 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20376, Time=160, Mark, payload bytes=640
-     7-430                          Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
+     7-429                          Payload type=l16(99), SSRC=0x043DA974, Seq=20377-20799, Time=160 samples/pkt
    430 2016-11-26 15:03:08.874 GMT Payload type=l16(99), SSRC=0x043DA974, Seq=20800, Time=68000, payload bytes=640
 ***** SSRC changed from 71149940 to 71301644 ******
    439 2016-11-26 15:03:09.004 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50505, Time=320, Mark, payload bytes=1280
-   440-863                          Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
+   440-862                          Payload type=l16(99), SSRC=0x043FFA0C, Seq=50506-50928, Time=320 samples/pkt
    863 2016-11-26 15:03:17.484 GMT Payload type=l16(99), SSRC=0x043FFA0C, Seq=50929, Time=136000, payload bytes=1280
 ***** SSRC changed from 71301644 to 71149957 ******
    872 2016-11-26 15:03:17.629 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14108, Time=256, Mark, payload bytes=512
-   873-1237                          Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
+   873-1236                          Payload type=l16(99), SSRC=0x043DA985, Seq=14109-14472, Time=256 samples/pkt
   1237 2016-11-26 15:03:29.309 GMT Payload type=l16(99), SSRC=0x043DA985, Seq=14473, Time=93696, payload bytes=512
 ***** SSRC changed from 71149957 to 71301665 ******
   1246 2016-11-26 15:03:29.441 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=50794, Time=960, Mark, payload bytes=1920
-  1247-1670                          Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
+  1247-1669                          Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670 2016-11-26 15:03:37.921 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
 output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time date 2>&1)
@@ -231,11 +231,11 @@ check_substring "L16 timeofday" "$L16_DATE" "$output"
 # NOTE: the sequence rollover in the first SSRC
 G726_DETAILS="***** SSRC changed from 71150055 to 71301759 ******
   2171  Payload type=unknown(99), SSRC=0x043FFA7F, Seq=65433, Time=160, Mark, payload bytes=60
-  2172-2595  Payload type=unknown(99), SSRC=0x043FFA7F, Seq=65434-320, Time=160 samples/pkt
+  2172-2594  Payload type=unknown(99), SSRC=0x043FFA7F, Seq=65434-320, Time=160 samples/pkt
   2595  Payload type=unknown(99), SSRC=0x043FFA7F, Seq=321, Time=68000, payload bytes=60
 ***** SSRC changed from 71301759 to 71150072 ******
   2604  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=11987, Time=160, Mark, payload bytes=80
-  2605-3028  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=11988-12410, Time=160 samples/pkt
+  2605-3027  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=11988-12410, Time=160 samples/pkt
   3028  Payload type=unknown(99), SSRC=0x043DA9F8, Seq=12411, Time=68000, payload bytes=80"
 
 output=$($APP details $EXAMPLES/sip-rtp-g726.pcap 2>&1)
@@ -249,7 +249,7 @@ check_substring "G726 details" "$G726_DETAILS" "$output"
 
 # NOTE: correct times relative to capture start
 GSM_DETAILS="     6  0.023 Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32222, Time=160, Mark, payload bytes=33
-     7-430     Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32223-32645, Time=160 samples/pkt
+     7-429     Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32223-32645, Time=160 samples/pkt
    430  8.503 Payload type=gsm(3), SSRC=0x043DAAF1, Seq=32646, Time=68000, payload bytes=33"
 
 output=$($APP DeTaIlS $EXAMPLES/sip-rtp-gsm.pcap --TiMe CaPtUrE 2>&1)
@@ -343,15 +343,15 @@ fi
 DTMF_DETAILS="   439  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62726, Time=3931142841, payload bytes=240
 ***** Codec type change from pcma(8) to telephone-events(96) ******
    441  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62727, Time=3931143081, Mark, DTMF id=7, duration=0
-   443-449  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62728-62730, DTMF id=7
+   443-447  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62728-62730, DTMF id=7
    449  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62731, Time=3931143081, DTMF id=7, duration=960 (end)
 ***** Codec type change from telephone-events(96) to pcma(8) ******
    451  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62732, Time=3931144281, Mark, payload bytes=240
-   453-471  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62733-62741, Time=240 samples/pkt
+   453-469  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62733-62741, Time=240 samples/pkt
    471  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62742, Time=3931146681, payload bytes=240
 ***** Codec type change from pcma(8) to telephone-events(96) ******
    473  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62743, Time=3931146921, Mark, DTMF id=8, duration=0
-   475-481  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62744-62746, DTMF id=8
+   475-479  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62744-62746, DTMF id=8
    481  Payload type=telephone-events(96), SSRC=0x5711BF84, Seq=62747, Time=3931146921, DTMF id=8, duration=960 (end)
 ***** Codec type change from telephone-events(96) to pcma(8) ******
    483  Payload type=pcma(8), SSRC=0x5711BF84, Seq=62748, Time=3931148121, Mark, payload bytes=240"
@@ -366,22 +366,22 @@ check_substring "DTMF details" "$DTMF_DETAILS" "$output"
 #################################################
 # DTMF details missed
 DTMF_DETAILS_MISSED="    27  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52731, Time=767118487, payload bytes=240
-    28-1044  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52732-53239, Time=240 samples/pkt
+    28-1042  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=52732-53239, Time=240 samples/pkt
   1044  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53240, Time=767240647, payload bytes=240
 ***** Missed 1 sequence numbers ******
   1047  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53242, Time=767241127, payload bytes=240
-  1049-1199  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53243-53317, Time=240 samples/pkt
+  1049-1197  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53243-53317, Time=240 samples/pkt
   1199  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53318, Time=767259367, payload bytes=240
 ***** Missed 1 sequence numbers ******
   1202  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53320, Time=767259847, payload bytes=240
-  1204-1356  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53321-53396, Time=240 samples/pkt
+  1204-1354  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53321-53396, Time=240 samples/pkt
   1356  Payload type=pcma(8), SSRC=0x9A7B5382, Seq=53397, Time=767278327, payload bytes=240"
 
 output=$($APP details $EXAMPLES/SIP_DTMF2.pcap 2>&1)
 result=$?
 
 check_result "DTMF details missed" 0 $result
-check_substring "DTMF details missed" "$DTMF_DETAIS_MISSED" "$output"
+check_substring "DTMF details missed" "$DTMF_DETAILS_MISSED" "$output"
 
 #################################################
 # Stats corner cases
