@@ -94,7 +94,7 @@ uncommitted: ## Check for uncommitted changes
 
 check-format: format uncommitted ## Formats source and looks for changes
 
-all: format clean coverage ## build and test
+all: format clean integration-test coverage ## build and test
 
 ###############################
 ##@ Build
@@ -150,7 +150,7 @@ unit-test: $(UNIT_TEST_BIN) ## Run unit tests
 	$(ECHO) "Running unit tests..."
 	$(QUIET)./$(UNIT_TEST_BIN)
 
-integration-test: ## Run test script
+integration-test: $(APP) ## Run test script
 	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./integration_tests.sh
 
 app-clean: ## Cleanup the application
@@ -161,11 +161,10 @@ app-clean: ## Cleanup the application
 .PHONY: test unit-test integration-test coverage coverage-run coverage-report
 
 coverage: ## Build with coverage, run tests, and report
-	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
-	COVERAGE=1 $(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR)
+	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR)
 	COVERAGE=1 $(MAKE) coverage-run OBJ_DIR=$(COVERAGE_OBJ_DIR)
 
-coverage-run: test coverage-report ## Run the coverage tests (without rebuild)
+coverage-run: unit-test coverage-report ## Run the coverage tests (without rebuild)
 
 coverage-report: ## Summarize coverage from the latest instrumented test run
 	python3 -m gcovr $(GCOVR_FLAGS)
