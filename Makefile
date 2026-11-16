@@ -151,7 +151,7 @@ unit-test: $(UNIT_TEST_BIN) ## Run unit tests
 	$(QUIET)./$(UNIT_TEST_BIN)
 
 integration-test: ## Run test script
-	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./test.sh
+	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./integration_tests.sh
 
 app-clean: ## Cleanup the application
 	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
