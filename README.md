@@ -125,7 +125,8 @@ There are a few requirements to build the project:
 * Libraries (installed)
     * `libpcap` used for parsing packets from file
     * `libsrtp2` used for encrypting/decrypting packets from file
-* [CLI11](https://github.com/CLIUtils/CLI11) 2.7.2 for command-line parsing, vendored at `third_party/CLI11/include/CLI/CLI.hpp`
+* [CLI11](https://github.com/CLIUtils/CLI11) 2.7.2 is usedfor command-line parsing, and checked in at `third_party/CLI11/include/CLI/CLI.hpp`
+* `python3` with the `gcovr` module is used for code coverage data and can be installed with `make prereq`
 
 
 ## Contributing
