@@ -62,7 +62,7 @@ help: ## This message
 	@echo "===================="
 	@echo " Available Commands"
 	@echo "===================="
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m\033[0m\n"} /^[$$()% a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ###########
 ##@ General
@@ -94,7 +94,7 @@ uncommitted: ## Check for uncommitted changes
 
 check-format: format uncommitted ## Formats source and looks for changes
 
-all: format clean coverage ## build and test
+all: format clean integration-test coverage ## build and test
 
 ###############################
 ##@ Build
@@ -150,8 +150,8 @@ unit-test: $(UNIT_TEST_BIN) ## Run unit tests
 	$(ECHO) "Running unit tests..."
 	$(QUIET)./$(UNIT_TEST_BIN)
 
-integration-test: ## Run test script
-	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./test.sh
+integration-test: $(APP) ## Run test script
+	INCLUDE_SRTP="$(INCLUDE_SRTP)" ./integration_tests.sh
 
 app-clean: ## Cleanup the application
 	rm -rf $(OBJ_DIR) $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
@@ -161,11 +161,10 @@ app-clean: ## Cleanup the application
 .PHONY: test unit-test integration-test coverage coverage-run coverage-report
 
 coverage: ## Build with coverage, run tests, and report
-	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR) $(APP)
-	COVERAGE=1 $(MAKE) app OBJ_DIR=$(COVERAGE_OBJ_DIR)
+	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR)
 	COVERAGE=1 $(MAKE) coverage-run OBJ_DIR=$(COVERAGE_OBJ_DIR)
 
-coverage-run: test coverage-report ## Run the coverage tests (without rebuild)
+coverage-run: unit-test coverage-report ## Run the coverage tests (without rebuild)
 
 coverage-report: ## Summarize coverage from the latest instrumented test run
 	python3 -m gcovr $(GCOVR_FLAGS)
