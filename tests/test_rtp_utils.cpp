@@ -83,9 +83,9 @@ static void test_rtp_event() {
 }
 
 void test_rtp_utils() {
-    test_rtp_hdr_init();
-    test_rtp_hdr_fields();
-    test_rtp_hdr_is_ptype_rtcp();
-    test_rtp_hdr_get_extension_length();
-    test_rtp_event();
+    RUN_TEST(test_rtp_hdr_init);
+    RUN_TEST(test_rtp_hdr_fields);
+    RUN_TEST(test_rtp_hdr_is_ptype_rtcp);
+    RUN_TEST(test_rtp_hdr_get_extension_length);
+    RUN_TEST(test_rtp_event);
 }

@@ -1,7 +1,9 @@
 #include "test_harness.h"
 
 int g_failed = 0;
+bool g_in_test = false;
 std::string g_tmpdir;
+std::vector<std::string> g_pending_failures;
 
 int main() {
     setvbuf(stdout, NULL, _IONBF, 0);

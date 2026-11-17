@@ -1,6 +1,7 @@
 #include "test_harness.h"
 
 void test_action_list() {
+    TestScope scope(__FILE__ ":test_action_list");
     CmdResult missing = run_cli({"list", g_tmpdir + "/no-such-list.pcap"});
     EXPECT(missing.code == -2);
     EXPECT_CONTAINS(missing.output, "missing file=");

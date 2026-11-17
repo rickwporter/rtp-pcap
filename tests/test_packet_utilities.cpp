@@ -135,8 +135,8 @@ static void test_rtp_pcap_get_next_packet() {
 }
 
 void test_packet_utilities() {
-    test_rtp_pcap_iph_byteswap();
-    test_rtp_pcap_udph_byteswap();
-    test_rtp_pcap_open_input();
-    test_rtp_pcap_get_next_packet();
+    RUN_TEST(test_rtp_pcap_iph_byteswap);
+    RUN_TEST(test_rtp_pcap_udph_byteswap);
+    RUN_TEST(test_rtp_pcap_open_input);
+    RUN_TEST(test_rtp_pcap_get_next_packet);
 }

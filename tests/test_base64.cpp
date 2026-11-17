@@ -95,6 +95,6 @@ static void test_base64_decode() {
 }
 
 void test_base64() {
-    test_base64_encode();
-    test_base64_decode();
+    RUN_TEST(test_base64_encode);
+    RUN_TEST(test_base64_decode);
 }

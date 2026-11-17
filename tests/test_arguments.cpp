@@ -71,9 +71,9 @@ static void test_CommonArgs_create_rtpmap() {
 }
 
 void test_arguments() {
-    test_RtpMap_get_string();
-    test_RtpMap_parse();
-    test_rtp_pcap_time_display_parse();
-    test_CommonArgs_init_filter();
-    test_CommonArgs_create_rtpmap();
+    RUN_TEST(test_RtpMap_get_string);
+    RUN_TEST(test_RtpMap_parse);
+    RUN_TEST(test_rtp_pcap_time_display_parse);
+    RUN_TEST(test_CommonArgs_init_filter);
+    RUN_TEST(test_CommonArgs_create_rtpmap);
 }

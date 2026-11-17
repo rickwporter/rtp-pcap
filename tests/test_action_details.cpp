@@ -287,13 +287,13 @@ static void test_add_details_command() {
 }
 
 void test_action_details() {
-    test_rtp_pcap_packet_get_rtp_payload_length();
-    test_is_next_rtp_sequence();
-    test_rtp_pcap_details_time_display();
-    test_rtp_pcap_details_analyze();
-    test_rtp_pcap_details_packet_display();
-    test_rtp_pcap_details_packet_summary();
-    test_details_summary_indices_skip_displayed_packets();
-    test_rtp_pcap_details();
-    test_add_details_command();
+    RUN_TEST(test_rtp_pcap_packet_get_rtp_payload_length);
+    RUN_TEST(test_is_next_rtp_sequence);
+    RUN_TEST(test_rtp_pcap_details_time_display);
+    RUN_TEST(test_rtp_pcap_details_analyze);
+    RUN_TEST(test_rtp_pcap_details_packet_display);
+    RUN_TEST(test_rtp_pcap_details_packet_summary);
+    RUN_TEST(test_details_summary_indices_skip_displayed_packets);
+    RUN_TEST(test_rtp_pcap_details);
+    RUN_TEST(test_add_details_command);
 }
