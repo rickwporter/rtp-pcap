@@ -8,15 +8,12 @@ CC                  := gcc
 CXX                 := g++
 LXX                 := g++
 INCLUDE_SRTP        ?= 1
-COVERAGE            ?= 0
 CFLAGS              := -O0 -Wall -Werror -ggdb -DINCLUDE_SRTP=$(INCLUDE_SRTP)
 CXXFLAGS            := -std=c++11 -Ithird_party/CLI11/include
 LDFLAGS             := -Bstatic
-
-ifneq ("$(COVERAGE)", "0")
-CFLAGS              += --coverage -fprofile-arcs
-LDFLAGS             += --coverage
-endif
+# Included on the unit-test compile and link lines
+COVERAGE_CFLAGS     := --coverage -fprofile-arcs
+COVERAGE_LDFLAGS    := --coverage
 EXTRA_CFLAGS        ?= 
 EXTRA_LDFLAGS       ?=
 
@@ -78,6 +75,9 @@ env: ## Print select environment variables
 	@echo "EXTRA_CFLAGS    : $(EXTRA_CFLAGS)"
 	@echo "LDFLAGS         : $(LDFLAGS)"
 	@echo "EXTRA_LDFLAGS   : $(EXTRA_LDFLAGS)"
+	@echo "COVERAGE_CFLAGS : $(COVERAGE_CFLAGS)"
+	@echo "COVERAGE_LDFLAGS: $(COVERAGE_LDFLAGS)"
+	@echo "UNIT_TEST_BIN   : $(UNIT_TEST_BIN)"
 	@echo "COVERAGE_DIR    : $(COVERAGE_DIR)"
 	@echo "COVERAGE_INDEX  : $(COVERAGE_INDEX)"
 
@@ -98,7 +98,7 @@ all: format clean integration-test coverage ## build and test
 
 ###############################
 ##@ Build
-$(OBJ_DIR):
+$(OBJ_DIR) $(COVERAGE_OBJ_DIR):
 	$(ECHO) "Making $@..."
 	$(QUIET)mkdir -p $@
 
@@ -114,8 +114,12 @@ $(APP): $(COBJS) $(CPPOBJS)
 	$(ECHO) "Linking $@..."
 	$(QUIET)$(LXX) -o $@ $(COBJS) $(CPPOBJS) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
-# Unit tests link every object except the process entry, which defines main.
-UNIT_TEST_BIN       := $(OBJ_DIR)/unit-tests
+# Unit tests always build with coverage instrumentation, separate from the app.
+# The instrumented library objects live beside the test objects in objs-cov.
+COV_COBJS           = $(patsubst %.c,$(COVERAGE_OBJ_DIR)/%.o,$(CSRCS))
+COV_CPPOBJS         = $(patsubst %.cpp,$(COVERAGE_OBJ_DIR)/%.o,$(CPPSRCS))
+COV_LIB_CPPOBJS     = $(filter-out $(COVERAGE_OBJ_DIR)/main.o,$(COV_CPPOBJS))
+UNIT_TEST_BIN       := $(COVERAGE_OBJ_DIR)/unit-tests
 UNIT_TEST_SRCS      := tests/unit_tests.cpp
 UNIT_TEST_SRCS      += tests/test_action_details.cpp
 UNIT_TEST_SRCS      += tests/test_action_list.cpp
@@ -131,20 +135,29 @@ UNIT_TEST_SRCS      += tests/test_packet_utilities.cpp
 UNIT_TEST_SRCS      += tests/test_rtp_pcap.cpp
 UNIT_TEST_SRCS      += tests/test_rtp_utils.cpp
 UNIT_TEST_SRCS      += tests/test_time_utilities.cpp
-UNIT_TEST_OBJS       = $(patsubst tests/%.cpp,$(OBJ_DIR)/%.o,$(UNIT_TEST_SRCS))
-LIB_CPPOBJS          = $(filter-out $(OBJ_DIR)/main.o,$(CPPOBJS))
+UNIT_TEST_OBJS       = $(patsubst tests/%.cpp,$(COVERAGE_OBJ_DIR)/%.o,$(UNIT_TEST_SRCS))
 
-$(UNIT_TEST_OBJS): $(OBJ_DIR)/%.o : tests/%.cpp | $(OBJ_DIR)
+$(COV_LIB_CPPOBJS): $(COVERAGE_OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp | $(COVERAGE_OBJ_DIR)
 	$(ECHO) "Compiling $<..."
-	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) -I$(SRC_DIR) $<
+	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(COVERAGE_CFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) $<
 
-$(UNIT_TEST_BIN): $(COBJS) $(LIB_CPPOBJS) $(UNIT_TEST_OBJS)
+$(COV_COBJS): $(COVERAGE_OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(COVERAGE_OBJ_DIR)
+	$(ECHO) "Compiling $<..."
+	$(QUIET)$(CC) -c -o $@ $(CFLAGS) $(COVERAGE_CFLAGS) $(EXTRA_CFLAGS) $<
+
+$(UNIT_TEST_OBJS): $(COVERAGE_OBJ_DIR)/%.o : tests/%.cpp | $(COVERAGE_OBJ_DIR)
+	$(ECHO) "Compiling $<..."
+	$(QUIET)$(CXX) -c -o $@ $(CFLAGS) $(COVERAGE_CFLAGS) $(CXXFLAGS) $(EXTRA_CFLAGS) -I$(SRC_DIR) $<
+
+$(UNIT_TEST_BIN): $(COV_COBJS) $(COV_LIB_CPPOBJS) $(UNIT_TEST_OBJS)
 	$(ECHO) "Linking $@..."
-	$(QUIET)$(LXX) -o $@ $(COBJS) $(LIB_CPPOBJS) $(UNIT_TEST_OBJS) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(QUIET)$(LXX) -o $@ $(COV_COBJS) $(COV_LIB_CPPOBJS) $(UNIT_TEST_OBJS) $(LDFLAGS) $(COVERAGE_LDFLAGS) $(EXTRA_LDFLAGS)
 
 app: $(APP) ## Build the application
 
 test: unit-test integration-test ## Run unit and integration tests
+
+unit-test-build: $(UNIT_TEST_BIN) ## Build coverage-instrumented unit tests without running them
 
 unit-test: $(UNIT_TEST_BIN) ## Run unit tests
 	$(ECHO) "Running unit tests..."
@@ -158,11 +171,14 @@ app-clean: ## Cleanup the application
 
 ###############################
 ##@ Coverage
-.PHONY: test unit-test integration-test coverage coverage-run coverage-report
+.PHONY: test unit-test unit-test-build integration-test coverage coverage-build coverage-run coverage-report
 
-coverage: ## Build with coverage, run tests, and report
-	rm -rf $(COVERAGE_OBJ_DIR) $(COVERAGE_DIR)
-	COVERAGE=1 $(MAKE) coverage-run OBJ_DIR=$(COVERAGE_OBJ_DIR)
+coverage-build: ## Clean and rebuild coverage-instrumented unit tests
+	rm -rf $(COVERAGE_DIR)
+	$(MAKE) unit-test-build
+
+coverage: coverage-build ## Build with coverage, run tests, and report
+	$(MAKE) coverage-run
 
 coverage-run: unit-test coverage-report ## Run the coverage tests (without rebuild)
 
