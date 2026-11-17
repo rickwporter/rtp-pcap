@@ -68,24 +68,24 @@ rtp-pcap details [OPTIONS] file
 
 
 POSITIONALS:
-  file TEXT REQUIRED          PCAP file
+  file FILENAME REQUIRED      PCAP file
 
 OPTIONS:
   -h,     --help              Print this help message and exit
-          --filter TEXT:{dst,src} [dst]  
-                              Flag to filter on source or destination IP/UDP (default dst)
-          --ip addr           Source or destination IP address
-          --port num          Source or destination UDP port
-          --rtpmap num=string[:num=string[...]] 
-                              RTP payload type to string values
+          --filter {src, dst} [dst]  
+                              Flag to filter on source or destination IP/UDP
+          --ip ADDR           Source or destination IP address
+          --port PORT         Source or destination UDP port
+          --rtpmap NUM=NAME[:NUM=NAME[...]] 
+                              RTP payload type to name values
           --all               Print all packets in stream
           --quiet             Do NOT provide analysis comments on stream
-          --index TEXT:{pcap,stream} [pcap]  
-                              Index type (default pcap)
-          --time TEXT:{none,previous,capture,timeofday,date} [none]  
-                              Time display format (default none)
-          --dtmf INT:INT in [0 - 127] [101]  
-                              RTP payload type for DTMF decodes (default 101)"
+          --index {pcap, stream} [pcap]  
+                              Index type
+          --time {none, previous, capture, timeofday, date} [none]  
+                              Time display format
+          --dtmf INT in [0 - 127] [101]  
+                              RTP payload type for DTMF decodes"
 
 output=$($APP details --help 2>&1)
 result=$?

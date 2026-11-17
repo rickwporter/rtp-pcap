@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+#include <initializer_list>
 #include <map>
 #include <string>
 #include <vector>
@@ -65,7 +66,8 @@ class CommonArgs {
 
 namespace CLI {
 class App;
-}
+class Option;
+} // namespace CLI
 
 // Subcommand with case-insensitive name and flag matching, including --help.
 CLI::App *rtp_pcap_add_subcommand(CLI::App &parent, const std::string &name, const std::string &description);
@@ -77,5 +79,9 @@ void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args);
 
 // --time on details and stats. The stored value is one of the canonical names.
 void rtp_pcap_add_time_option(CLI::App *cmd, std::string &time, const std::string &default_value, const std::string &description);
+
+// Show the allowed keywords as {src, dst} and accept them case-insensitively.
+// The stored value is the spelling given here.
+CLI::Option *rtp_pcap_keyword_choices(CLI::Option *opt, std::initializer_list<const char *> choices);
 
 time_display_t rtp_pcap_time_display_parse(const std::string &name);
