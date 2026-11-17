@@ -22,5 +22,7 @@ jobs:
       run: uname -a
     - name: prereq
       run: make prereq
-    - name: coverage
-      run: make env coverage
+    - name: build
+      run: make env coverage-build
+    - name: test
+      run: make coverage

@@ -20,5 +20,7 @@ jobs:
       run: sudo apt install libsrtp2-dev libpcap-dev
     - name: uname
       run: uname -a
-    - name: integration
-      run: make env integration-test
+    - name: build
+      run: make env app
+    - name: test
+      run: make integration-test
