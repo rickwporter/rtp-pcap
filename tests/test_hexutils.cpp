@@ -82,10 +82,10 @@ static void test_hexdump_r() {
 }
 
 void test_hexutils() {
-    test_ascii2nibble();
-    test_hexString2Binary();
-    test_bin2hexString_r();
-    test_bin2hexString();
-    test_hexdump();
-    test_hexdump_r();
+    RUN_TEST(test_ascii2nibble);
+    RUN_TEST(test_hexString2Binary);
+    RUN_TEST(test_bin2hexString_r);
+    RUN_TEST(test_bin2hexString);
+    RUN_TEST(test_hexdump);
+    RUN_TEST(test_hexdump_r);
 }

@@ -40,9 +40,9 @@ static void test_datetime() {
 }
 
 void test_time_utilities() {
-    test_milliseconds();
-    test_tv2seconds();
-    test_seconds2tv();
-    test_timeofday();
-    test_datetime();
+    RUN_TEST(test_milliseconds);
+    RUN_TEST(test_tv2seconds);
+    RUN_TEST(test_seconds2tv);
+    RUN_TEST(test_timeofday);
+    RUN_TEST(test_datetime);
 }

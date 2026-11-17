@@ -1,6 +1,7 @@
 #include "test_harness.h"
 
 void test_action_summary() {
+    TestScope scope(__FILE__ ":test_action_summary");
     std::vector<std::vector<uint8_t>> stream;
     stream.push_back(voice_packet(1, 0, 0, 1));
     stream.push_back(voice_packet(2, 160, 0, 0));

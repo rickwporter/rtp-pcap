@@ -20,6 +20,7 @@ static CmdResult run_program(const std::vector<std::string> &args) {
 }
 
 void test_rtp_pcap() {
+    TestScope scope(__FILE__ ":test_rtp_pcap");
     CmdResult help = run_program({"rtp-pcap"});
     EXPECT(help.code == 0);
     EXPECT_CONTAINS(help.output, "Look at RTP in a PCAP file");

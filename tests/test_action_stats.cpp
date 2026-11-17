@@ -1,6 +1,7 @@
 #include "test_harness.h"
 
 void test_action_stats() {
+    TestScope scope(__FILE__ ":test_action_stats");
     std::vector<std::vector<uint8_t>> jumped;
     jumped.push_back(voice_packet(1, 0, 0, 0));
     jumped.push_back(voice_packet(200, 160, 0, 0));

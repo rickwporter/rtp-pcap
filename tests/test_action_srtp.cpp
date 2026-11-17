@@ -191,14 +191,14 @@ static void test_rtp_pcap_srtp_bad_output() {
 }
 
 void test_action_srtp() {
-    test_rtp_pcap_algorithm_string();
-    test_rtp_pcap_cryptop_string();
-    test_rtp_pcap_get_srtp_error_string();
-    test_isxstring();
-    test_parse_srtp_key();
-    test_error_inc();
-    test_srtp_log_print();
-    test_add_encrypt_command();
-    test_add_decrypt_command();
-    test_rtp_pcap_srtp_bad_output();
+    RUN_TEST(test_rtp_pcap_algorithm_string);
+    RUN_TEST(test_rtp_pcap_cryptop_string);
+    RUN_TEST(test_rtp_pcap_get_srtp_error_string);
+    RUN_TEST(test_isxstring);
+    RUN_TEST(test_parse_srtp_key);
+    RUN_TEST(test_error_inc);
+    RUN_TEST(test_srtp_log_print);
+    RUN_TEST(test_add_encrypt_command);
+    RUN_TEST(test_add_decrypt_command);
+    RUN_TEST(test_rtp_pcap_srtp_bad_output);
 }

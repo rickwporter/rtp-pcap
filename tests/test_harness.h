@@ -24,32 +24,77 @@
 #endif
 
 extern int g_failed;
+extern bool g_in_test;
 extern std::string g_tmpdir;
+extern std::vector<std::string> g_pending_failures;
+
+inline void add_failure(const std::string &message) {
+    g_failed++;
+    if (g_in_test) {
+        g_pending_failures.push_back(message);
+    } else {
+        fprintf(stderr, "%s\n", message.c_str());
+    }
+}
 
 inline void expect(bool condition, const char *expression, const char *file, int line) {
     if (!condition) {
-        fprintf(stderr, "FAIL %s:%d: %s\n", file, line, expression);
-        g_failed++;
+        add_failure(std::string("FAIL ") + file + ":" + std::to_string(line) + ": " + expression);
     }
 }
 
 inline void expect_streq(const char *actual, const char *expected, const char *file, int line) {
     if (actual == NULL || expected == NULL || strcmp(actual, expected) != 0) {
-        fprintf(stderr, "FAIL %s:%d:\n  actual:   [%s]\n  expected: [%s]\n", file, line, actual ? actual : "(null)", expected ? expected : "(null)");
-        g_failed++;
+        add_failure(
+            std::string("FAIL ") + file + ":" + std::to_string(line) + ":\n  actual:   [" + (actual ? actual : "(null)") + "]\n  expected: [" +
+            (expected ? expected : "(null)") + "]"
+        );
     }
 }
 
 inline void expect_contains(const std::string &haystack, const char *needle, const char *file, int line) {
     if (haystack.find(needle) == std::string::npos) {
-        fprintf(stderr, "FAIL %s:%d: missing \"%s\" in:\n%s\n", file, line, needle, haystack.c_str());
-        g_failed++;
+        add_failure(std::string("FAIL ") + file + ":" + std::to_string(line) + ": missing \"" + needle + "\" in:\n" + haystack);
     }
 }
 
 #define EXPECT(condition) expect(static_cast<bool>(condition), #condition, __FILE__, __LINE__)
 #define EXPECT_STREQ(actual, expected) expect_streq((actual), (expected), __FILE__, __LINE__)
 #define EXPECT_CONTAINS(haystack, needle) expect_contains((haystack), (needle), __FILE__, __LINE__)
+
+class TestScope {
+  public:
+    explicit TestScope(const char *name) : failed_before(g_failed) {
+        g_pending_failures.clear();
+        g_in_test = true;
+        printf("%s ... ", name);
+        fflush(stdout);
+    }
+
+    ~TestScope() {
+        bool passed = g_failed == failed_before;
+        g_in_test = false;
+        printf("%s\n", passed ? "PASS" : "FAIL");
+        fflush(stdout);
+        for (size_t i = 0; i < g_pending_failures.size(); i++) {
+            fprintf(stderr, "%s\n", g_pending_failures[i].c_str());
+        }
+        g_pending_failures.clear();
+        fflush(stderr);
+    }
+
+    TestScope(const TestScope &) = delete;
+    TestScope &operator=(const TestScope &) = delete;
+
+  private:
+    int failed_before;
+};
+
+#define RUN_TEST(function)                                                                                                                           \
+    do {                                                                                                                                             \
+        TestScope scope(__FILE__ ":" #function);                                                                                                     \
+        function();                                                                                                                                  \
+    } while (0)
 
 class TempDir {
   public:
