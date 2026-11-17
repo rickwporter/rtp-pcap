@@ -135,25 +135,41 @@ CLI::App *rtp_pcap_add_subcommand(CLI::App &parent, const string &name, const st
     return subcmd;
 }
 
+CLI::Option *rtp_pcap_keyword_choices(CLI::Option *opt, initializer_list<const char *> choices) {
+    string metavar = "{";
+    vector<string> values;
+    const char *separator = "";
+    for (initializer_list<const char *>::const_iterator it = choices.begin(); it != choices.end(); ++it) {
+        metavar += separator;
+        metavar += *it;
+        separator = ", ";
+        values.push_back(*it);
+    }
+    metavar += "}";
+
+    // An empty validator description keeps CLI11 from appending TEXT:{...}.
+    return opt->type_name(metavar)->transform(CLI::IsMember(values, CLI::ignore_case), "", "");
+}
+
 void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args) {
-    cmd->add_option("file", args.filename, "PCAP file")->required();
+    cmd->add_option("file", args.filename, "PCAP file")->type_name("FILENAME")->required();
 
-    cmd->add_option("--filter", args.filter, "Flag to filter on source or destination IP/UDP (default dst)")
-        ->default_val("dst")
-        ->transform(CLI::IsMember({"dst", "src"}, CLI::ignore_case));
+    rtp_pcap_keyword_choices(
+        cmd->add_option("--filter", args.filter, "Flag to filter on source or destination IP/UDP")->default_val("dst"), {"src", "dst"}
+    );
 
-    cmd->add_option("--ip", args.addr, "Source or destination IP address")->type_name("addr");
-    cmd->add_option("--port", args.port, "Source or destination UDP port")->type_name("num");
+    cmd->add_option("--ip", args.addr, "Source or destination IP address")->type_name("ADDR");
+    cmd->add_option("--port", args.port, "Source or destination UDP port")->type_name("PORT");
 
     // One value per occurrence. type_size keeps a following flag from being consumed as another value.
-    cmd->add_option("--rtpmap", args.rtpmap_values, "RTP payload type to string values")
-        ->type_name("num=string[:num=string[...]]")
+    cmd->add_option("--rtpmap", args.rtpmap_values, "RTP payload type to name values")
+        ->type_name("NUM=NAME[:NUM=NAME[...]]")
         ->type_size(1)
         ->expected(1);
 }
 
 void rtp_pcap_add_time_option(CLI::App *cmd, string &time, const string &default_value, const string &description) {
-    cmd->add_option("--time", time, description)
-        ->default_val(default_value)
-        ->transform(CLI::IsMember({"none", "previous", "capture", "timeofday", "date"}, CLI::ignore_case));
+    rtp_pcap_keyword_choices(
+        cmd->add_option("--time", time, description)->default_val(default_value), {"none", "previous", "capture", "timeofday", "date"}
+    );
 }

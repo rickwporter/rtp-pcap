@@ -371,11 +371,11 @@ static void add_srtp_command(CLI::App &parent, int &exit_code, const char *progn
     shared_ptr<SrtpArgs> args = make_shared<SrtpArgs>();
     CLI::App *subcmd = rtp_pcap_add_subcommand(parent, name, description);
     rtp_pcap_add_common_options(subcmd, args->common);
-    subcmd->add_option("--alg", args->alg, "Cryptographic algorithm suite (default aes128-sha1-32)")
-        ->default_val("aes128-sha1-32")
-        ->transform(CLI::IsMember({"aes128-sha1-32", "aes128-sha1-80"}, CLI::ignore_case));
-    subcmd->add_option("--key", args->key, "Master key in hexadecimal or base64 format")->required()->type_name("hex|base64");
-    subcmd->add_option("--output", args->outfile, "Output filename (default output.pcap)")->default_val("output.pcap")->type_name("filename");
+    rtp_pcap_keyword_choices(
+        subcmd->add_option("--alg", args->alg, "Cryptographic algorithm suite")->default_val("aes128-sha1-32"), {"aes128-sha1-32", "aes128-sha1-80"}
+    );
+    subcmd->add_option("--key", args->key, "Master key in hexadecimal or base64 format")->required()->type_name("KEY");
+    subcmd->add_option("--output", args->outfile, "Output filename")->default_val("output.pcap")->type_name("FILENAME");
     subcmd->add_flag("--force", args->force, "Overwrite existing output file");
     subcmd->add_flag("--debug", args->debug, "Turn on libSRTP debug");
 

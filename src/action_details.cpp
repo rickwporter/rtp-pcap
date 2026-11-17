@@ -448,13 +448,14 @@ void add_details_command(CLI::App &parent, int &exit_code, const char *progname)
     rtp_pcap_add_common_options(subcmd, args->common);
     subcmd->add_flag("--all", args->print_all, "Print all packets in stream");
     subcmd->add_flag("--quiet", args->quiet, "Do NOT provide analysis comments on stream");
-    subcmd->add_option("--index", args->index, "Index type (default pcap)")
-        ->default_val("pcap")
-        ->transform(CLI::IsMember({"pcap", "stream"}, CLI::ignore_case));
-    rtp_pcap_add_time_option(subcmd, args->time, "none", "Time display format (default none)");
-    subcmd->add_option("--dtmf", args->dtmf, "RTP payload type for DTMF decodes (default 101)")
+    rtp_pcap_keyword_choices(subcmd->add_option("--index", args->index, "Index type")->default_val("pcap"), {"pcap", "stream"});
+    rtp_pcap_add_time_option(subcmd, args->time, "none", "Time display format");
+    // An empty validator description keeps CLI11 from prefixing the range with INT:.
+    CLI::Range dtmf_range(0, 127);
+    subcmd->add_option("--dtmf", args->dtmf, "RTP payload type for DTMF decodes")
         ->default_val(RTP_PTYPE_DTMF_DEFAULT)
-        ->check(CLI::Range(0, 127));
+        ->type_name(dtmf_range.get_description())
+        ->check(dtmf_range.description(""));
 
     string program(progname);
     subcmd->callback([&exit_code, program, args]() { exit_code = run_details(program.c_str(), *args); });
