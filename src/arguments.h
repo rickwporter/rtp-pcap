@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <sys/time.h>
 
 #include <initializer_list>
 #include <map>
@@ -29,6 +30,8 @@ typedef struct {
     uint32_t daddr; // TODO: make it IPv6 friendly
     uint16_t sport;
     uint16_t dport;
+    struct timeval capture_start; // timestamp of the first packet in the file
+    int capture_start_set;
 } rtp_pcap_filter_t;
 
 // Payload type to codec name. Unknown types report "unknown".
@@ -78,7 +81,11 @@ CLI::App *rtp_pcap_add_subcommand(CLI::App &parent, const std::string &name, con
 void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args);
 
 // --time on details and stats. The stored value is one of the canonical names.
-void rtp_pcap_add_time_option(CLI::App *cmd, std::string &time, const std::string &default_value, const std::string &description);
+void rtp_pcap_add_packet_time_option(CLI::App *cmd, std::string &time, const std::string &default_value, const std::string &description);
+
+// --time on list and summary. Choices are none, capture, timeofday, and date.
+// The default is capture: seconds since the first packet in the file.
+void rtp_pcap_add_start_time_option(CLI::App *cmd, std::string &time);
 
 // Show the allowed keywords as {src, dst} and accept them case-insensitively.
 // The stored value is the spelling given here.

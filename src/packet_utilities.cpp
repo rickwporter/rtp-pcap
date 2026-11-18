@@ -38,6 +38,11 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
         memcpy(data_buffer, pcap_data, pcap_header_ptr->caplen);
 
         *total_packets += 1;
+        // Keep the timestamp of the first packet in the file, including packets this reader skips.
+        if (!filter->capture_start_set) {
+            filter->capture_start = pcap_header_ptr->ts;
+            filter->capture_start_set = 1;
+        }
         ip_offset = 14; // typical Ethernet
 
         // TODO: make multiple vlan friendly
