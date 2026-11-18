@@ -31,6 +31,26 @@ static void test_timeofday() {
     EXPECT_STREQ(timeofday(buffer, sizeof(buffer), &tv), "00:00:00.000 GMT");
 }
 
+static void test_rtp_pcap_format_start_time() {
+    struct timeval capture_start;
+    capture_start.tv_sec = 1;
+    capture_start.tv_usec = 250000;
+    struct timeval tv;
+    tv.tv_sec = 3;
+    tv.tv_usec = 500000;
+    char buffer[64];
+    EXPECT(!rtp_pcap_format_start_time(tdisp_none, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT(!rtp_pcap_format_start_time(tdisp_prevpacket, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT(rtp_pcap_format_start_time(tdisp_startcapture, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT_STREQ(buffer, "2.250");
+    EXPECT(rtp_pcap_format_start_time(tdisp_timeofday, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT_STREQ(buffer, "00:00:03.500 GMT");
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+    EXPECT(rtp_pcap_format_start_time(tdisp_date, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT_STREQ(buffer, "1970-01-01 00:00:00.000 GMT");
+}
+
 static void test_datetime() {
     struct timeval tv;
     tv.tv_sec = 0;
@@ -45,4 +65,5 @@ void test_time_utilities() {
     RUN_TEST(test_seconds2tv);
     RUN_TEST(test_timeofday);
     RUN_TEST(test_datetime);
+    RUN_TEST(test_rtp_pcap_format_start_time);
 }

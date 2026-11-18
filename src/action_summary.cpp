@@ -10,18 +10,34 @@
 #include "arguments.h"
 #include "packet_utilities.h"
 #include "rtp_utils.h"
+#include "time_utilities.h"
 
 using namespace std;
 
 typedef std::map<uint32_t, uint32_t> map_count_t;
 typedef map_count_t::iterator map_count_i;
 
-static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter) {
+static void print_stream_span(
+    const char *indent, uint32_t start_index, const struct timeval *start_time, const struct timeval *end_time, time_display_t time_type,
+    const struct timeval *capture_start
+) {
+    fprintf(stdout, "%sStart index: %u\n", indent, start_index);
+    char time_buffer[64];
+    if (rtp_pcap_format_start_time(time_type, time_buffer, sizeof(time_buffer), start_time, capture_start)) {
+        fprintf(stdout, "%sStart time: %s\n", indent, time_buffer);
+    }
+    fprintf(stdout, "%sDuration: %0.3f seconds\n", indent, tv2seconds(end_time) - tv2seconds(start_time));
+}
+
+static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, time_display_t time_type) {
     map_count_t ssrcs;
     map_count_t codecs;
     map_count_i icount;
     uint32_t total_pkt_count = 0;
     uint32_t stream_pkt_count = 0;
+    uint32_t start_index = 0;
+    struct timeval start_time = {};
+    struct timeval end_time = {};
     rtp_pcap_pkt_t packet;
     rtphdr_t *rtph;
     struct in_addr addr;
@@ -38,6 +54,8 @@ static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpM
         }
 
         if (stream_pkt_count == 0) {
+            start_index = total_pkt_count;
+            start_time = packet.pcap_hdr.ts;
             if (filter->flags & FILTER_FLAG_DST_FILTER) {
                 filter->flags |= FILTER_FLAG_DADDR_SET | FILTER_FLAG_DPORT_SET;
                 filter->daddr = packet.iph->daddr;
@@ -49,6 +67,7 @@ static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpM
             }
         }
 
+        end_time = packet.pcap_hdr.ts;
         stream_pkt_count++;
         ssrcs[rtp_hdr_get_ssrc(rtph)] += 1;
         codecs[rtp_hdr_get_ptype(rtph)] += 1;
@@ -64,6 +83,9 @@ static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpM
         filter->flags & FILTER_FLAG_DST_FILTER ? filter->dport : filter->sport
     );
     fprintf(stdout, "  RTP %u packets (%u in capture)\n", stream_pkt_count, total_pkt_count);
+    if (stream_pkt_count > 0) {
+        print_stream_span("  ", start_index, &start_time, &end_time, time_type, &filter->capture_start);
+    }
     fprintf(stdout, "  SSRCs (%zu):\n", ssrcs.size());
     for (icount = ssrcs.begin(); icount != ssrcs.end(); icount++) {
         fprintf(stdout, "    0x%08x : %u\n", icount->first, icount->second);
@@ -77,6 +99,9 @@ static void rtp_pcap_summary(const char *progname, pcap_t *pcap_file, const RtpM
 
 struct SummaryArgs {
     CommonArgs common;
+    string time;
+
+    SummaryArgs() : time("capture") {}
 };
 
 static int run_summary(const char *progname, SummaryArgs &args) {
@@ -89,7 +114,7 @@ static int run_summary(const char *progname, SummaryArgs &args) {
 
     rtp_pcap_filter_t filter;
     args.common.init_filter(filter);
-    rtp_pcap_summary(progname, pcap_file, rtpmap, &filter);
+    rtp_pcap_summary(progname, pcap_file, rtpmap, &filter, rtp_pcap_time_display_parse(args.time));
     pcap_close(pcap_file);
     return 0;
 }
@@ -98,6 +123,7 @@ void add_summary_command(CLI::App &parent, int &exit_code, const char *progname)
     shared_ptr<SummaryArgs> args = make_shared<SummaryArgs>();
     CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_SUMMARY, "Summarize the RTP stream");
     rtp_pcap_add_common_options(subcmd, args->common);
+    rtp_pcap_add_start_time_option(subcmd, args->time);
 
     string program(progname);
     subcmd->callback([&exit_code, program, args]() { exit_code = run_summary(program.c_str(), *args); });

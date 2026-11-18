@@ -38,3 +38,22 @@ char *datetime(char *buffer, const size_t buflen, const struct timeval *tv) {
     snprintf(buffer, buflen, "%s.%03ld GMT", tmbuf, milliseconds(tv));
     return buffer;
 }
+
+bool rtp_pcap_format_start_time(
+    time_display_t time_type, char *buffer, size_t buflen, const struct timeval *tv, const struct timeval *capture_start
+) {
+    if (time_type == tdisp_startcapture) {
+        snprintf(buffer, buflen, "%0.3f", tv2seconds(tv) - tv2seconds(capture_start));
+        return true;
+    }
+    if (time_type == tdisp_timeofday) {
+        timeofday(buffer, buflen, tv);
+        return true;
+    }
+    if (time_type == tdisp_date) {
+        datetime(buffer, buflen, tv);
+        return true;
+    }
+
+    return false;
+}

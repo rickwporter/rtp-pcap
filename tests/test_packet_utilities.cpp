@@ -132,6 +132,23 @@ static void test_rtp_pcap_get_next_packet() {
     total = 0;
     EXPECT(rtp_pcap_get_next_packet(pcap, &total, &filter, &packet) == -1);
     pcap_close(pcap);
+
+    PcapFile offset;
+    offset.add_ethernet(0x0806, std::vector<uint8_t>(8, 0), false, 5, 250000);
+    offset.add_udp(ipv4(10, 0, 0, 1), ipv4(10, 0, 0, 2), 4002, 4000, rtp, false, 8, 0);
+    std::string offset_path = g_tmpdir + "/offset.pcap";
+    offset.write(offset_path);
+    pcap = open_pcap(offset_path);
+    memset(&filter, 0, sizeof(filter));
+    filter.flags = FILTER_FLAG_DST_FILTER;
+    total = 0;
+    EXPECT(rtp_pcap_get_next_packet(pcap, &total, &filter, &packet) == 0);
+    EXPECT(total == 2);
+    EXPECT(filter.capture_start_set == 1);
+    EXPECT(filter.capture_start.tv_sec == 5);
+    EXPECT(filter.capture_start.tv_usec == 250000);
+    EXPECT(packet.pcap_hdr.ts.tv_sec == 8);
+    pcap_close(pcap);
 }
 
 void test_packet_utilities() {

@@ -118,6 +118,9 @@ check_substring "Details invalid argument" "not expected: --not-an-arg" "$output
 # L16 list
 L16_LIST="rtp-pcap found (1673 total packet in capture):
   IP destination: 10.0.2.20:6000 (1641 packets)
+    Start index: 6
+    Start time: 0.023
+    Duration: 37.527 seconds
     SSRCs (4):
       0x043da974 : 425
       0x043da985 : 366
@@ -277,6 +280,9 @@ check_substring "G729 all" "$G729_ALL" "$output"
 ILBC_SUMMARY="rtp-pcap summary:
   IP destination: 10.0.2.20:6000
   RTP 284 packets (292 in capture)
+  Start index: 6
+  Start time: 0.033
+  Duration: 8.490 seconds
   SSRCs (1):
     0x043eefa7 : 284
   Payload types (1):

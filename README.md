@@ -66,6 +66,9 @@ $ ./rtp-pcap list examples/sip-rtp-g729a.pcap
 
 rtp-pcap found (433 total packet in capture):
   IP destination: 10.0.2.20:6000 (425 packets)
+    Start index: 6
+    Start time: 0.026
+    Duration: 8.480 seconds
     SSRCs (1):
       0x044559a1 : 425
     Payload types (1):

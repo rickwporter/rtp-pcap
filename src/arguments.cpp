@@ -1,7 +1,6 @@
 #include <arpa/inet.h> // for inet_network()
-#include <cstdio>
-#include <cstdlib> // for atoi()
-#include <cstring> // for memset()
+#include <cstdlib>     // for atoi()
+#include <cstring>     // for memset()
 
 #include <CLI/CLI.hpp>
 
@@ -171,5 +170,11 @@ void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args) {
 void rtp_pcap_add_time_option(CLI::App *cmd, string &time, const string &default_value, const string &description) {
     rtp_pcap_keyword_choices(
         cmd->add_option("--time", time, description)->default_val(default_value), {"none", "previous", "capture", "timeofday", "date"}
+    );
+}
+
+void rtp_pcap_add_start_time_option(CLI::App *cmd, string &time) {
+    rtp_pcap_keyword_choices(
+        cmd->add_option("--time", time, "Start time display format")->default_val("capture"), {"none", "capture", "timeofday", "date"}
     );
 }
