@@ -34,9 +34,9 @@ static void print_stream_span(
     const struct timeval *capture_start
 ) {
     fprintf(stdout, "%sStart index: %u\n", indent, start_index);
-    char time_buffer[64];
-    if (rtp_pcap_format_start_time(time_type, time_buffer, sizeof(time_buffer), start_time, capture_start)) {
-        fprintf(stdout, "%sStart time: %s\n", indent, time_buffer);
+    const char *formatted = rtp_pcap_format_start_time(time_type, start_time, capture_start);
+    if (formatted != NULL) {
+        fprintf(stdout, "%sStart time: %s\n", indent, formatted);
     }
     fprintf(stdout, "%sDuration: %0.3f seconds\n", indent, tv2seconds(end_time) - tv2seconds(start_time));
 }

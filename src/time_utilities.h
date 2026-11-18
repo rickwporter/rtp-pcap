@@ -15,4 +15,10 @@ char *datetime(char *buffer, const size_t buflen, const struct timeval *tv);
 // capture is seconds since capture_start, the first packet in the file.
 // timeofday and date are clock forms of the packet timestamp.
 // Returns false for tdisp_none and for modes those actions do not offer.
-bool rtp_pcap_format_start_time(time_display_t time_type, char *buffer, size_t buflen, const struct timeval *tv, const struct timeval *capture_start);
+bool rtp_pcap_format_start_time_r(
+    time_display_t time_type, char *buffer, size_t buflen, const struct timeval *tv, const struct timeval *capture_start
+);
+
+// Returns the formatted start time, or NULL when the reentrant version returns false.
+// The pointer is only valid until the next call.
+const char *rtp_pcap_format_start_time(time_display_t time_type, const struct timeval *tv, const struct timeval *capture_start);

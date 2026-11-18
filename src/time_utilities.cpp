@@ -39,7 +39,9 @@ char *datetime(char *buffer, const size_t buflen, const struct timeval *tv) {
     return buffer;
 }
 
-bool rtp_pcap_format_start_time(
+char g_time_buffer[128];
+
+bool rtp_pcap_format_start_time_r(
     time_display_t time_type, char *buffer, size_t buflen, const struct timeval *tv, const struct timeval *capture_start
 ) {
     if (time_type == tdisp_startcapture) {
@@ -56,4 +58,11 @@ bool rtp_pcap_format_start_time(
     }
 
     return false;
+}
+
+const char *rtp_pcap_format_start_time(time_display_t time_type, const struct timeval *tv, const struct timeval *capture_start) {
+    if (!rtp_pcap_format_start_time_r(time_type, g_time_buffer, sizeof(g_time_buffer), tv, capture_start)) {
+        return NULL;
+    }
+    return g_time_buffer;
 }
