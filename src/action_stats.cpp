@@ -241,7 +241,7 @@ void add_stats_command(CLI::App &parent, int &exit_code, const char *progname) {
     shared_ptr<StatsArgs> args = make_shared<StatsArgs>();
     CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
     rtp_pcap_add_common_options(subcmd, args->common);
-    rtp_pcap_add_packet_time_option(subcmd, args->time, "capture", "Time display format");
+    rtp_pcap_add_start_time_option(subcmd, args->time);
 
     string program(progname);
     subcmd->callback([&exit_code, program, args]() { exit_code = run_stats(program.c_str(), *args); });
