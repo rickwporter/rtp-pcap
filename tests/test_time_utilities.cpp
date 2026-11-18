@@ -40,18 +40,18 @@ static void test_rtp_pcap_format_start_time() {
     tv.tv_usec = 500000;
     char buffer[64];
     EXPECT(rtp_pcap_format_start_time(tdisp_none, &tv, &capture_start) == NULL);
-    EXPECT(!rtp_pcap_format_start_time_r(tdisp_none, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT(rtp_pcap_format_start_time_r(tdisp_none, buffer, sizeof(buffer), &tv, &capture_start) == NULL);
     EXPECT(rtp_pcap_format_start_time(tdisp_prevpacket, &tv, &capture_start) == NULL);
-    EXPECT(!rtp_pcap_format_start_time_r(tdisp_prevpacket, buffer, sizeof(buffer), &tv, &capture_start));
-    EXPECT(rtp_pcap_format_start_time_r(tdisp_startcapture, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT(rtp_pcap_format_start_time_r(tdisp_prevpacket, buffer, sizeof(buffer), &tv, &capture_start) == NULL);
+    EXPECT(rtp_pcap_format_start_time_r(tdisp_startcapture, buffer, sizeof(buffer), &tv, &capture_start) == buffer);
     EXPECT_STREQ(buffer, "2.250");
     EXPECT_STREQ(rtp_pcap_format_start_time(tdisp_startcapture, &tv, &capture_start), "2.250");
-    EXPECT(rtp_pcap_format_start_time_r(tdisp_timeofday, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT(rtp_pcap_format_start_time_r(tdisp_timeofday, buffer, sizeof(buffer), &tv, &capture_start) == buffer);
     EXPECT_STREQ(buffer, "00:00:03.500 GMT");
     EXPECT_STREQ(rtp_pcap_format_start_time(tdisp_timeofday, &tv, &capture_start), "00:00:03.500 GMT");
     tv.tv_sec = 0;
     tv.tv_usec = 0;
-    EXPECT(rtp_pcap_format_start_time_r(tdisp_date, buffer, sizeof(buffer), &tv, &capture_start));
+    EXPECT(rtp_pcap_format_start_time_r(tdisp_date, buffer, sizeof(buffer), &tv, &capture_start) == buffer);
     EXPECT_STREQ(buffer, "1970-01-01 00:00:00.000 GMT");
     EXPECT_STREQ(rtp_pcap_format_start_time(tdisp_date, &tv, &capture_start), "1970-01-01 00:00:00.000 GMT");
 }

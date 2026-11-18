@@ -179,22 +179,9 @@ static void rtp_pcap_stats(pcap_t *pcap_file, rtp_pcap_filter_t *filter, time_di
         struct timeval end_tv = seconds2tv(info->end_time);
         char start_buffer[64];
         char end_buffer[64];
-        char *start_time = NULL;
-        char *end_time = NULL;
+        char *start_time = rtp_pcap_format_start_time_r(time_type, start_buffer, sizeof(start_buffer), &start_tv, &first_clock);
+        char *end_time = rtp_pcap_format_start_time_r(time_type, end_buffer, sizeof(end_buffer), &end_tv, &first_clock);
 
-        if (time_type == time_display_t::tdisp_date) {
-            start_time = datetime(start_buffer, sizeof(start_buffer), &start_tv);
-            end_time = datetime(end_buffer, sizeof(end_buffer), &end_tv);
-        } else if (time_type == time_display_t::tdisp_timeofday) {
-            start_time = timeofday(start_buffer, sizeof(start_buffer), &start_tv);
-            end_time = timeofday(end_buffer, sizeof(end_buffer), &end_tv);
-        } else if (time_type == time_display_t::tdisp_startcapture) {
-            double cap_start = tv2seconds(&first_clock);
-            snprintf(start_buffer, sizeof(start_buffer), "%0.3f", info->start_time - cap_start);
-            snprintf(end_buffer, sizeof(end_buffer), "%0.3f", info->end_time - cap_start);
-            start_time = start_buffer;
-            end_time = end_buffer;
-        }
         fprintf(stdout, "  0x%08X:\n", ssrc);
         if (start_time) {
             fprintf(stdout, "      start-time: %s\n", start_time);
@@ -241,7 +228,7 @@ void add_stats_command(CLI::App &parent, int &exit_code, const char *progname) {
     shared_ptr<StatsArgs> args = make_shared<StatsArgs>();
     CLI::App *subcmd = rtp_pcap_add_subcommand(parent, ARG_ACT_STATS, "Provide RTP packet statistics for a stream");
     rtp_pcap_add_common_options(subcmd, args->common);
-    rtp_pcap_add_packet_time_option(subcmd, args->time, "capture", "Time display format");
+    rtp_pcap_add_start_time_option(subcmd, args->time);
 
     string program(progname);
     subcmd->callback([&exit_code, program, args]() { exit_code = run_stats(program.c_str(), *args); });

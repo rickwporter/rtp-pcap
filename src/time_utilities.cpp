@@ -41,28 +41,24 @@ char *datetime(char *buffer, const size_t buflen, const struct timeval *tv) {
 
 char g_time_buffer[128];
 
-bool rtp_pcap_format_start_time_r(
-    time_display_t time_type, char *buffer, size_t buflen, const struct timeval *tv, const struct timeval *capture_start
-) {
+char *
+rtp_pcap_format_start_time_r(time_display_t time_type, char *buffer, size_t buflen, const struct timeval *tv, const struct timeval *capture_start) {
     if (time_type == tdisp_startcapture) {
         snprintf(buffer, buflen, "%0.3f", tv2seconds(tv) - tv2seconds(capture_start));
-        return true;
+        return buffer;
     }
     if (time_type == tdisp_timeofday) {
         timeofday(buffer, buflen, tv);
-        return true;
+        return buffer;
     }
     if (time_type == tdisp_date) {
         datetime(buffer, buflen, tv);
-        return true;
+        return buffer;
     }
 
-    return false;
+    return NULL;
 }
 
-const char *rtp_pcap_format_start_time(time_display_t time_type, const struct timeval *tv, const struct timeval *capture_start) {
-    if (!rtp_pcap_format_start_time_r(time_type, g_time_buffer, sizeof(g_time_buffer), tv, capture_start)) {
-        return NULL;
-    }
-    return g_time_buffer;
+char *rtp_pcap_format_start_time(time_display_t time_type, const struct timeval *tv, const struct timeval *capture_start) {
+    return rtp_pcap_format_start_time_r(time_type, g_time_buffer, sizeof(g_time_buffer), tv, capture_start);
 }
