@@ -34,7 +34,7 @@ static void print_stream_span(
     const struct timeval *capture_start
 ) {
     fprintf(stdout, "%sStart index: %u\n", indent, start_index);
-    const char *formatted = rtp_pcap_format_start_time(time_type, start_time, capture_start);
+    char *formatted = rtp_pcap_format_start_time(time_type, start_time, capture_start);
     if (formatted != NULL) {
         fprintf(stdout, "%sStart time: %s\n", indent, formatted);
     }
