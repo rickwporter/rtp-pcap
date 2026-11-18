@@ -167,7 +167,7 @@ void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args) {
         ->expected(1);
 }
 
-void rtp_pcap_add_time_option(CLI::App *cmd, string &time, const string &default_value, const string &description) {
+void rtp_pcap_add_packet_time_option(CLI::App *cmd, string &time, const string &default_value, const string &description) {
     rtp_pcap_keyword_choices(
         cmd->add_option("--time", time, description)->default_val(default_value), {"none", "previous", "capture", "timeofday", "date"}
     );

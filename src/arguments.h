@@ -81,7 +81,7 @@ CLI::App *rtp_pcap_add_subcommand(CLI::App &parent, const std::string &name, con
 void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args);
 
 // --time on details and stats. The stored value is one of the canonical names.
-void rtp_pcap_add_time_option(CLI::App *cmd, std::string &time, const std::string &default_value, const std::string &description);
+void rtp_pcap_add_packet_time_option(CLI::App *cmd, std::string &time, const std::string &default_value, const std::string &description);
 
 // --time on list and summary. Choices are none, capture, timeofday, and date.
 // The default is capture: seconds since the first packet in the file.

@@ -449,7 +449,7 @@ void add_details_command(CLI::App &parent, int &exit_code, const char *progname)
     subcmd->add_flag("--all", args->print_all, "Print all packets in stream");
     subcmd->add_flag("--quiet", args->quiet, "Do NOT provide analysis comments on stream");
     rtp_pcap_keyword_choices(subcmd->add_option("--index", args->index, "Index type")->default_val("pcap"), {"pcap", "stream"});
-    rtp_pcap_add_time_option(subcmd, args->time, "none", "Time display format");
+    rtp_pcap_add_packet_time_option(subcmd, args->time, "none", "Time display format");
     // An empty validator description keeps CLI11 from prefixing the range with INT:.
     CLI::Range dtmf_range(0, 127);
     subcmd->add_option("--dtmf", args->dtmf, "RTP payload type for DTMF decodes")
