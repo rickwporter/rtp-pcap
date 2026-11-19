@@ -136,7 +136,7 @@ static void rtp_pcap_stats(pcap_t *pcap_file, rtp_pcap_filter_t *filter, time_di
             continue;
         }
 
-        double current = tv2seconds(&packet.pcap_hdr.ts);
+        double current = tv_to_seconds(&packet.pcap_hdr.ts);
         uint32_t ssrc = rtp_hdr_get_ssrc(rtph);
         StreamStats *info = NULL;
         StreamStatMap::const_iterator it = stats.find(ssrc);
@@ -175,8 +175,8 @@ static void rtp_pcap_stats(pcap_t *pcap_file, rtp_pcap_filter_t *filter, time_di
     for (StreamStatMap::const_iterator it = stats.begin(); it != stats.end(); it++) {
         uint32_t ssrc = it->first;
         StreamStats *info = it->second;
-        struct timeval start_tv = seconds2tv(info->start_time);
-        struct timeval end_tv = seconds2tv(info->end_time);
+        struct timeval start_tv = seconds_to_tv(info->start_time);
+        struct timeval end_tv = seconds_to_tv(info->end_time);
         char start_buffer[64];
         char end_buffer[64];
         char *start_time = rtp_pcap_format_start_time_r(time_type, start_buffer, sizeof(start_buffer), &start_tv, &first_clock);

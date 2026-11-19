@@ -11,7 +11,7 @@ int main() {
 
     TempDir temp;
     test_time_utilities();
-    test_hexutils();
+    test_hex_utils();
     test_base64();
     test_arguments();
     test_rtp_utils();

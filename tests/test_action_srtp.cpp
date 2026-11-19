@@ -19,7 +19,7 @@ typedef enum {
 const char *rtp_pcap_algorithm_string(srtp_algorithm_t alg);
 const char *rtp_pcap_cryptop_string(cryptop_t op);
 const char *rtp_pcap_get_srtp_error_string(srtp_err_status_t status);
-bool isxstring(const char *input);
+bool is_hex_string(const char *input);
 int parse_srtp_key(unsigned char *output, const char *input);
 void srtp_log_print(srtp_log_level_t level, const char *msg, void *data);
 void error_inc(std::map<srtp_err_status_t, int> &errors, srtp_err_status_t error, int inc_value);
@@ -88,12 +88,12 @@ static void test_rtp_pcap_get_srtp_error_string() {
     }
 }
 
-static void test_isxstring() {
-    EXPECT(isxstring(HEX_KEY));
-    EXPECT(isxstring(""));
-    EXPECT(isxstring("0123456789abcdefABCDEF"));
-    EXPECT(!isxstring(B64_KEY));
-    EXPECT(!isxstring("zz"));
+static void test_is_hex_string() {
+    EXPECT(is_hex_string(HEX_KEY));
+    EXPECT(is_hex_string(""));
+    EXPECT(is_hex_string("0123456789abcdefABCDEF"));
+    EXPECT(!is_hex_string(B64_KEY));
+    EXPECT(!is_hex_string("zz"));
 }
 
 static void test_parse_srtp_key() {
@@ -194,7 +194,7 @@ void test_action_srtp() {
     RUN_TEST(test_rtp_pcap_algorithm_string);
     RUN_TEST(test_rtp_pcap_cryptop_string);
     RUN_TEST(test_rtp_pcap_get_srtp_error_string);
-    RUN_TEST(test_isxstring);
+    RUN_TEST(test_is_hex_string);
     RUN_TEST(test_parse_srtp_key);
     RUN_TEST(test_error_inc);
     RUN_TEST(test_srtp_log_print);

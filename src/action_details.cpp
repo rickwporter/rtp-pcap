@@ -28,27 +28,27 @@ int rtp_pcap_packet_get_rtp_payload_length(rtp_pcap_pkt_t *pkt) {
 bool is_next_rtp_sequence(rtphdr_t *last, rtphdr_t *curr) { return ((rtp_hdr_get_sequence(last) + 1) & 0xffff) == rtp_hdr_get_sequence(curr); }
 
 void rtp_pcap_details_time_display(
-    time_display_t time_type, char *time_display, const size_t display_size, char *time_dspace, const size_t space_size,
-    const struct timeval *pkttime, const struct timeval *lastpkt, const struct timeval *firstpkt
+    time_display_t time_type, char *time_display, const size_t display_size, char *time_summary, const size_t summary_size,
+    const struct timeval *packet_time, const struct timeval *last_packet, const struct timeval *first_packet
 ) {
-    if (time_type == tdisp_prevpacket) {
-        time_t sec = pkttime->tv_sec - lastpkt->tv_sec;
-        unsigned long msecs = sec * 1000 + (pkttime->tv_usec - lastpkt->tv_usec) / 1000;
+    if (time_type == tdisp_previous) {
+        time_t sec = packet_time->tv_sec - last_packet->tv_sec;
+        unsigned long msecs = sec * 1000 + (packet_time->tv_usec - last_packet->tv_usec) / 1000;
         snprintf(time_display, display_size, "%6lu", msecs);
-        snprintf(time_dspace, space_size, "   ");
-    } else if (time_type == tdisp_startcapture) {
-        float seconds = pkttime->tv_sec - firstpkt->tv_sec + (float)(pkttime->tv_usec - firstpkt->tv_usec) / 1000000;
+        snprintf(time_summary, summary_size, "   ");
+    } else if (time_type == tdisp_capture) {
+        float seconds = packet_time->tv_sec - first_packet->tv_sec + (float)(packet_time->tv_usec - first_packet->tv_usec) / 1000000;
         snprintf(time_display, display_size, "%6.3f", seconds);
-        snprintf(time_dspace, space_size, "   ");
+        snprintf(time_summary, summary_size, "   ");
     } else if (time_type == tdisp_timeofday) {
-        timeofday(time_display, display_size, pkttime);
-        snprintf(time_dspace, space_size, "             ");
-    } else if (time_type == tdisp_date) {
-        datetime(time_display, display_size, pkttime);
-        snprintf(time_dspace, space_size, "                        ");
+        timeofday(time_display, display_size, packet_time);
+        snprintf(time_summary, summary_size, "             ");
+    } else if (time_type == tdisp_datetime) {
+        datetime(time_display, display_size, packet_time);
+        snprintf(time_summary, summary_size, "                        ");
     } else {
         time_display[0] = '\0';
-        time_dspace[0] = '\0';
+        time_summary[0] = '\0';
     }
 }
 

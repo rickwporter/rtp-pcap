@@ -38,7 +38,7 @@ static void print_stream_span(
     if (formatted != NULL) {
         fprintf(stdout, "%sStart time: %s\n", indent, formatted);
     }
-    fprintf(stdout, "%sDuration: %0.3f seconds\n", indent, tv2seconds(end_time) - tv2seconds(start_time));
+    fprintf(stdout, "%sDuration: %0.3f seconds\n", indent, tv_to_seconds(end_time) - tv_to_seconds(start_time));
 }
 
 static void rtp_pcap_list(

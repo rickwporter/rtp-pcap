@@ -384,7 +384,7 @@ void test_action_stats();
 void test_action_summary();
 void test_arguments();
 void test_base64();
-void test_hexutils();
+void test_hex_utils();
 void test_packet_utilities();
 void test_rtp_pcap();
 void test_rtp_utils();

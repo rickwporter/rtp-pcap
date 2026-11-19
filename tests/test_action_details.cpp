@@ -3,8 +3,8 @@
 int rtp_pcap_packet_get_rtp_payload_length(rtp_pcap_pkt_t *pkt);
 bool is_next_rtp_sequence(rtphdr_t *last, rtphdr_t *curr);
 void rtp_pcap_details_time_display(
-    time_display_t time_type, char *time_display, const size_t display_size, char *time_dspace, const size_t space_size,
-    const struct timeval *pkttime, const struct timeval *lastpkt, const struct timeval *firstpkt
+    time_display_t time_type, char *time_display, const size_t display_size, char *time_summary, const size_t summary_size,
+    const struct timeval *packet_time, const struct timeval *last_packet, const struct timeval *first_packet
 );
 const char *rtp_pcap_details_analyze(
     char *output, size_t out_size, rtphdr_t *rtph, rtphdr_t *last_rtp, const RtpMap &rtpmap, uint32_t samples_per_packet, uint8_t dtmf_decode,
@@ -85,11 +85,11 @@ static void test_rtp_pcap_details_time_display() {
     packet_time.tv_usec = 500000;
     last_time.tv_sec = 1;
 
-    rtp_pcap_details_time_display(tdisp_prevpacket, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);
+    rtp_pcap_details_time_display(tdisp_previous, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);
     EXPECT_STREQ(display, "  1500");
     EXPECT_STREQ(spaces, "   ");
 
-    rtp_pcap_details_time_display(tdisp_startcapture, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);
+    rtp_pcap_details_time_display(tdisp_capture, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);
     EXPECT_STREQ(display, " 2.500");
     EXPECT_STREQ(spaces, "   ");
 
@@ -98,7 +98,7 @@ static void test_rtp_pcap_details_time_display() {
     rtp_pcap_details_time_display(tdisp_timeofday, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);
     EXPECT_STREQ(display, "00:00:00.000 GMT");
     EXPECT(strlen(spaces) == 13);
-    rtp_pcap_details_time_display(tdisp_date, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);
+    rtp_pcap_details_time_display(tdisp_datetime, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);
     EXPECT_STREQ(display, "1970-01-01 00:00:00.000 GMT");
     EXPECT(strlen(spaces) == 24);
     rtp_pcap_details_time_display(tdisp_none, display, sizeof(display), spaces, sizeof(spaces), &packet_time, &last_time, &first_time);

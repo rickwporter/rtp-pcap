@@ -1,42 +1,42 @@
-#include "hexutils.h"
+#include "hex_utils.h"
 #include "test_harness.h"
 
-static void test_ascii2nibble() {
-    EXPECT(ascii2nibble('0') == 0);
-    EXPECT(ascii2nibble('9') == 9);
-    EXPECT(ascii2nibble('A') == 10);
-    EXPECT(ascii2nibble('F') == 15);
-    EXPECT(ascii2nibble('a') == 10);
-    EXPECT(ascii2nibble('f') == 15);
-    EXPECT(ascii2nibble('G') == 0);
-    EXPECT(ascii2nibble(' ') == 0);
+static void test_ascii_to_nibble() {
+    EXPECT(ascii_to_nibble('0') == 0);
+    EXPECT(ascii_to_nibble('9') == 9);
+    EXPECT(ascii_to_nibble('A') == 10);
+    EXPECT(ascii_to_nibble('F') == 15);
+    EXPECT(ascii_to_nibble('a') == 10);
+    EXPECT(ascii_to_nibble('f') == 15);
+    EXPECT(ascii_to_nibble('G') == 0);
+    EXPECT(ascii_to_nibble(' ') == 0);
 }
 
-static void test_hexString2Binary() {
+static void test_hex_string_to_binary() {
     uint8_t binary[8];
-    EXPECT(hexString2Binary(binary, "0x0A0b") == 2);
+    EXPECT(hex_string_to_binary(binary, "0x0A0b") == 2);
     EXPECT(binary[0] == 0x0a);
     EXPECT(binary[1] == 0x0b);
-    EXPECT(hexString2Binary(binary, "0a 0b") == 2);
+    EXPECT(hex_string_to_binary(binary, "0a 0b") == 2);
     EXPECT(binary[0] == 0x0a);
     EXPECT(binary[1] == 0x0b);
-    EXPECT(hexString2Binary(binary, "0x") == 0);
-    EXPECT(hexString2Binary(binary, "") == 0);
-    EXPECT(hexString2Binary(binary, "zz") == -1);
-    EXPECT(hexString2Binary(binary, "abc") == -1);
-    EXPECT(hexString2Binary(binary, "AG") == -1);
+    EXPECT(hex_string_to_binary(binary, "0x") == 0);
+    EXPECT(hex_string_to_binary(binary, "") == 0);
+    EXPECT(hex_string_to_binary(binary, "zz") == -1);
+    EXPECT(hex_string_to_binary(binary, "abc") == -1);
+    EXPECT(hex_string_to_binary(binary, "AG") == -1);
 }
 
-static void test_bin2hexString_r() {
+static void test_binary_to_hex_string_r() {
     uint8_t bytes[] = {0x0a, 0xff};
     char text[8];
-    EXPECT_STREQ(bin2hexString_r(text, bytes, 2), "0aff");
-    EXPECT_STREQ(bin2hexString_r(text, bytes, 0), "");
+    EXPECT_STREQ(binary_to_hex_string_r(text, bytes, 2), "0aff");
+    EXPECT_STREQ(binary_to_hex_string_r(text, bytes, 0), "");
 }
 
-static void test_bin2hexString() {
+static void test_binary_to_hex_string() {
     uint8_t bytes[] = {0x0a, 0xff};
-    EXPECT_STREQ(bin2hexString(bytes, 2), "0aff");
+    EXPECT_STREQ(binary_to_hex_string(bytes, 2), "0aff");
 }
 
 static void test_hexdump() {
@@ -81,11 +81,11 @@ static void test_hexdump_r() {
     EXPECT(strstr(dumped, "00000010: ") != NULL);
 }
 
-void test_hexutils() {
-    RUN_TEST(test_ascii2nibble);
-    RUN_TEST(test_hexString2Binary);
-    RUN_TEST(test_bin2hexString_r);
-    RUN_TEST(test_bin2hexString);
+void test_hex_utils() {
+    RUN_TEST(test_ascii_to_nibble);
+    RUN_TEST(test_hex_string_to_binary);
+    RUN_TEST(test_binary_to_hex_string_r);
+    RUN_TEST(test_binary_to_hex_string);
     RUN_TEST(test_hexdump);
     RUN_TEST(test_hexdump_r);
 }
