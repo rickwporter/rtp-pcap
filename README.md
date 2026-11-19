@@ -49,7 +49,7 @@ OPTIONS:
           --quiet             Do NOT provide analysis comments on stream
           --index {pcap, stream} [pcap]
                               Index type
-          --time {none, previous, capture, timeofday, date} [none]
+          --time {none, previous, capture, timeofday, datetime} [none]
                               Time display format
           --dtmf INT in [0 - 127] [101]
                               RTP payload type for DTMF decodes

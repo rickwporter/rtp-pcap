@@ -83,7 +83,7 @@ time_display_t rtp_pcap_time_display_parse(const string &name) {
     if (name == "timeofday") {
         return tdisp_timeofday;
     }
-    if (name == "date") {
+    if (name == "datetime") {
         return tdisp_date;
     }
 
@@ -169,12 +169,12 @@ void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args) {
 
 void rtp_pcap_add_packet_time_option(CLI::App *cmd, string &time, const string &default_value, const string &description) {
     rtp_pcap_keyword_choices(
-        cmd->add_option("--time", time, description)->default_val(default_value), {"none", "previous", "capture", "timeofday", "date"}
+        cmd->add_option("--time", time, description)->default_val(default_value), {"none", "previous", "capture", "timeofday", "datetime"}
     );
 }
 
 void rtp_pcap_add_start_time_option(CLI::App *cmd, string &time) {
     rtp_pcap_keyword_choices(
-        cmd->add_option("--time", time, "Start time display format")->default_val("capture"), {"none", "capture", "timeofday", "date"}
+        cmd->add_option("--time", time, "Start time display format")->default_val("capture"), {"none", "capture", "timeofday", "datetime"}
     );
 }

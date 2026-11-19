@@ -39,7 +39,7 @@ void test_action_list() {
     CmdResult clock = run_cli({"list", even_path, "--time", "timeofday"});
     EXPECT(clock.code == 0);
     EXPECT_CONTAINS(clock.output, "Start time: 00:00:00.000 GMT");
-    CmdResult dated = run_cli({"list", even_path, "--time", "date"});
+    CmdResult dated = run_cli({"list", even_path, "--time", "datetime"});
     EXPECT(dated.code == 0);
     EXPECT_CONTAINS(dated.output, "Start time: 1970-01-01 00:00:00.000 GMT");
     CmdResult hidden = run_cli({"list", even_path, "--time", "none"});

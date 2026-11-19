@@ -41,7 +41,7 @@ void test_action_stats() {
     EXPECT_CONTAINS(deltas.output, "pt changes: 1");
     EXPECT_CONTAINS(deltas.output, "mean: 1000.000 msecs");
 
-    CmdResult by_date = run_cli({"stats", timed_path, "--time", "date"});
+    CmdResult by_date = run_cli({"stats", timed_path, "--time", "datetime"});
     EXPECT(by_date.code == 0);
     EXPECT_CONTAINS(by_date.output, "1970-01-01");
 
