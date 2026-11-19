@@ -8,9 +8,9 @@
 
 long milliseconds(const struct timeval *tv) { return long(tv->tv_usec / MSEC_PER_SEC); }
 
-double tv2seconds(const struct timeval *tv) { return (double)(tv->tv_sec) + (double)(tv->tv_usec) / USEC_PER_SEC; }
+double tv_to_seconds(const struct timeval *tv) { return (double)(tv->tv_sec) + (double)(tv->tv_usec) / USEC_PER_SEC; }
 
-struct timeval seconds2tv(double timestamp) {
+struct timeval seconds_to_tv(double timestamp) {
     struct timeval tv;
     tv.tv_sec = (time_t)timestamp;
     tv.tv_usec = (suseconds_t)((timestamp - tv.tv_sec) * USEC_PER_SEC);
@@ -43,15 +43,15 @@ char g_time_buffer[128];
 
 char *
 rtp_pcap_format_start_time_r(time_display_t time_type, char *buffer, size_t buflen, const struct timeval *tv, const struct timeval *capture_start) {
-    if (time_type == tdisp_startcapture) {
-        snprintf(buffer, buflen, "%0.3f", tv2seconds(tv) - tv2seconds(capture_start));
+    if (time_type == tdisp_capture) {
+        snprintf(buffer, buflen, "%0.3f", tv_to_seconds(tv) - tv_to_seconds(capture_start));
         return buffer;
     }
     if (time_type == tdisp_timeofday) {
         timeofday(buffer, buflen, tv);
         return buffer;
     }
-    if (time_type == tdisp_date) {
+    if (time_type == tdisp_datetime) {
         datetime(buffer, buflen, tv);
         return buffer;
     }

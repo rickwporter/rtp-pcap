@@ -12,7 +12,7 @@
 #include "action_srtp.h"
 #include "arguments.h"
 #include "base64.h"
-#include "hexutils.h"
+#include "hex_utils.h"
 #include "packet_utilities.h"
 #include "rtp_utils.h"
 
@@ -119,7 +119,7 @@ const char *rtp_pcap_get_srtp_error_string(srtp_err_status_t status) {
     }
 }
 
-bool isxstring(const char *input) {
+bool is_hex_string(const char *input) {
     for (const char *i = input; *i != 0; i++) {
         if (!isxdigit(*i)) {
             return false;
@@ -130,8 +130,8 @@ bool isxstring(const char *input) {
 }
 
 int parse_srtp_key(unsigned char *output, const char *input) {
-    if (isxstring(input)) {
-        return hexString2Binary(output, input);
+    if (is_hex_string(input)) {
+        return hex_string_to_binary(output, input);
     }
 
     size_t out_len = 0;
@@ -155,7 +155,7 @@ static void rtp_pcap_srtp(
     const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, cryptop_t op, srtp_algorithm_t alg, bool force, bool debug,
     const std::string &key, const std::string &outfile
 ) {
-    struct stat mystat;
+    struct stat file_stat;
     pcap_t *output;
     pcap_dumper_t *dumper;
     rtp_pcap_pkt_t packet;
@@ -205,7 +205,7 @@ static void rtp_pcap_srtp(
     }
 
     // make sure output file does not exist -- don't want to worry about overwriting
-    if (!force && 0 == stat(outfile.c_str(), &mystat)) {
+    if (!force && 0 == stat(outfile.c_str(), &file_stat)) {
         fprintf(stdout, "\n%s: output file (%s) already exists!\n", progname, outfile.c_str());
         return;
     }
@@ -321,7 +321,7 @@ static void rtp_pcap_srtp(
 
     fprintf(stdout, "\n");
     fprintf(stdout, "\n%s: %s results", progname, rtp_pcap_cryptop_string(op));
-    fprintf(stdout, "\n    %s key[%d]=%s", rtp_pcap_algorithm_string(alg), key_length, bin2hexString(master_key, key_length));
+    fprintf(stdout, "\n    %s key[%d]=%s", rtp_pcap_algorithm_string(alg), key_length, binary_to_hex_string(master_key, key_length));
     if (errors.size()) {
         fprintf(stdout, "\n    %u srtp failures:", srtp_fail_count);
         for (SrtpErrorMap::const_iterator it = errors.begin(); it != errors.end(); it++) {

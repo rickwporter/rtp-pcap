@@ -33,7 +33,7 @@ SRC_DIR             := src
 SEPARATOR           := "****************************"
 APP                 := rtp-pcap
 
-CSRCS               := hexutils.c
+CSRCS               := hex_utils.c
 CSRCS               += base64.c
 CPPSRCS             := arguments.cpp
 CPPSRCS             += packet_utilities.cpp
@@ -130,7 +130,7 @@ UNIT_TEST_SRCS      += tests/test_action_stats.cpp
 UNIT_TEST_SRCS      += tests/test_action_summary.cpp
 UNIT_TEST_SRCS      += tests/test_arguments.cpp
 UNIT_TEST_SRCS      += tests/test_base64.cpp
-UNIT_TEST_SRCS      += tests/test_hexutils.cpp
+UNIT_TEST_SRCS      += tests/test_hex_utils.cpp
 UNIT_TEST_SRCS      += tests/test_packet_utilities.cpp
 UNIT_TEST_SRCS      += tests/test_rtp_pcap.cpp
 UNIT_TEST_SRCS      += tests/test_rtp_utils.cpp

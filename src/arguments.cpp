@@ -41,9 +41,9 @@ RtpMap::RtpMap() {
 }
 
 const char *RtpMap::get_string(uint8_t payload_type) const {
-    const_iterator iMap = find(payload_type);
-    if (iMap != end()) {
-        return iMap->second.c_str();
+    const_iterator found = find(payload_type);
+    if (found != end()) {
+        return found->second.c_str();
     }
 
     return "unknown";
@@ -75,16 +75,16 @@ void RtpMap::parse(const char *arg) {
 
 time_display_t rtp_pcap_time_display_parse(const string &name) {
     if (name == "previous") {
-        return tdisp_prevpacket;
+        return tdisp_previous;
     }
     if (name == "capture") {
-        return tdisp_startcapture;
+        return tdisp_capture;
     }
     if (name == "timeofday") {
         return tdisp_timeofday;
     }
     if (name == "datetime") {
-        return tdisp_date;
+        return tdisp_datetime;
     }
 
     return tdisp_none;

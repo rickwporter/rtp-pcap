@@ -45,10 +45,10 @@ class RtpMap : public std::map<uint8_t, std::string> {
 
 typedef enum {
     tdisp_none,
-    tdisp_prevpacket,
-    tdisp_startcapture,
+    tdisp_previous,
+    tdisp_capture,
     tdisp_timeofday,
-    tdisp_date,
+    tdisp_datetime,
 } time_display_t;
 
 // Values shared by every action. Address and port stay as text until the filter

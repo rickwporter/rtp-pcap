@@ -129,10 +129,10 @@ int rtp_pcap_get_next_packet(pcap_t *pcap_file, uint32_t *total_packets, rtp_pca
 }
 
 pcap_t *rtp_pcap_open_input(const char *progname, const char *filename) {
-    struct stat mystat;
+    struct stat file_stat;
     char error_buf[PCAP_ERRBUF_SIZE];
 
-    if (0 != stat(filename, &mystat)) {
+    if (0 != stat(filename, &file_stat)) {
         fprintf(stdout, "\n%s: missing file=%s\n", progname, filename);
         return NULL;
     }
