@@ -82,7 +82,7 @@ OPTIONS:
           --quiet             Do NOT provide analysis comments on stream
           --index {pcap, stream} [pcap]  
                               Index type
-          --time {none, previous, capture, timeofday, date} [none]  
+          --time {none, previous, capture, timeofday, datetime} [none]  
                               Time display format
           --dtmf INT in [0 - 127] [101]  
                               RTP payload type for DTMF decodes"
@@ -221,7 +221,7 @@ L16_DATE="     6 2016-11-26 15:03:00.394 GMT Payload type=l16(99), SSRC=0x043DA9
   1247-1669                          Payload type=l16(99), SSRC=0x043FFA21, Seq=50795-51217, Time=960 samples/pkt
   1670 2016-11-26 15:03:37.921 GMT Payload type=l16(99), SSRC=0x043FFA21, Seq=51218, Time=408000, payload bytes=1920"
 
-output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time date 2>&1)
+output=$($APP details $EXAMPLES/sip-rtp-l16.pcap --port 6000 --rtpmap 99=l16 --time datetime 2>&1)
 result=$?
 
 check_result "L16 timeofday" 0 $result
@@ -500,7 +500,7 @@ DTMF_STATS_DATE="IP destination: 192.168.105.172:4376, 665 packets (1360 in capt
                 min: 29.902 msecs
                mean: 30.001 msecs
                 max: 30.097 msecs"
-output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --time date 2>&1)
+output=$($APP stats $EXAMPLES/SIP_DTMF2.pcap --time datetime 2>&1)
 result=$?
 
 check_result "DTMF stats date" 0 $result

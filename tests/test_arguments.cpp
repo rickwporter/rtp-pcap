@@ -24,7 +24,7 @@ static void test_rtp_pcap_time_display_parse() {
     EXPECT(rtp_pcap_time_display_parse("previous") == tdisp_prevpacket);
     EXPECT(rtp_pcap_time_display_parse("capture") == tdisp_startcapture);
     EXPECT(rtp_pcap_time_display_parse("timeofday") == tdisp_timeofday);
-    EXPECT(rtp_pcap_time_display_parse("date") == tdisp_date);
+    EXPECT(rtp_pcap_time_display_parse("datetime") == tdisp_date);
     EXPECT(rtp_pcap_time_display_parse("none") == tdisp_none);
     EXPECT(rtp_pcap_time_display_parse("other") == tdisp_none);
 }
