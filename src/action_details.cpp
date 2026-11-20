@@ -28,8 +28,14 @@ int rtp_pcap_packet_get_rtp_payload_length(rtp_pcap_pkt_t *pkt) {
 bool is_next_rtp_sequence(rtphdr_t *last, rtphdr_t *curr) { return ((rtp_hdr_get_sequence(last) + 1) & 0xffff) == rtp_hdr_get_sequence(curr); }
 
 void rtp_pcap_details_time_display(
-    time_display_t time_type, char *time_display, const size_t display_size, char *time_summary, const size_t summary_size,
-    const struct timeval *packet_time, const struct timeval *last_packet, const struct timeval *first_packet
+    time_display_t time_type,
+    char *time_display,
+    const size_t display_size,
+    char *time_summary,
+    const size_t summary_size,
+    const struct timeval *packet_time,
+    const struct timeval *last_packet,
+    const struct timeval *first_packet
 ) {
     if (time_type == tdisp_previous) {
         time_t sec = packet_time->tv_sec - last_packet->tv_sec;
@@ -53,8 +59,15 @@ void rtp_pcap_details_time_display(
 }
 
 const char *rtp_pcap_details_analyze(
-    char *output, size_t out_size, rtphdr_t *rtph, rtphdr_t *last_rtp, const RtpMap &rtpmap, uint32_t samples_per_packet, uint8_t dtmf_decode,
-    uint8_t last_dtmf_event, uint32_t last_dtmf_time
+    char *output,
+    size_t out_size,
+    rtphdr_t *rtph,
+    rtphdr_t *last_rtp,
+    const RtpMap &rtpmap,
+    uint32_t samples_per_packet,
+    uint8_t dtmf_decode,
+    uint8_t last_dtmf_event,
+    uint32_t last_dtmf_time
 ) {
     rtp_event_t *dtmfh;
 
@@ -102,7 +115,11 @@ const char *rtp_pcap_details_analyze(
             snprintf(output, out_size, "***** Out of order RTP sequence number: back %d ******\n", -delta);
         else
             snprintf(
-                output, out_size, "***** Sequence number jump: last=%u, curr=%u ******\n", rtp_hdr_get_sequence(last_rtp), rtp_hdr_get_sequence(rtph)
+                output,
+                out_size,
+                "***** Sequence number jump: last=%u, curr=%u ******\n",
+                rtp_hdr_get_sequence(last_rtp),
+                rtp_hdr_get_sequence(rtph)
             );
     }
     // check this before doing the normal timestamp checking, since DTMF breaks
@@ -145,7 +162,13 @@ const char *rtp_pcap_details_analyze(
 }
 
 const char *rtp_pcap_details_packet_display(
-    char *output, size_t out_size, rtphdr_t *rtph, uint32_t index, const char *time_display, const RtpMap &rtpmap, uint8_t dtmf_decode,
+    char *output,
+    size_t out_size,
+    rtphdr_t *rtph,
+    uint32_t index,
+    const char *time_display,
+    const RtpMap &rtpmap,
+    uint8_t dtmf_decode,
     int payload_len
 ) {
     char payload_display[512];
@@ -189,8 +212,17 @@ const char *rtp_pcap_details_packet_display(
 }
 
 const char *rtp_pcap_details_packet_summary(
-    char *output, size_t out_size, rtphdr_t *last_rtp, uint32_t n_suppressed, uint32_t index_start, uint32_t index_end, const char *time_display,
-    const RtpMap &rtpmap, uint8_t dtmf_decode, uint8_t last_dtmf_event, uint32_t samples_per_packet
+    char *output,
+    size_t out_size,
+    rtphdr_t *last_rtp,
+    uint32_t n_suppressed,
+    uint32_t index_start,
+    uint32_t index_end,
+    const char *time_display,
+    const RtpMap &rtpmap,
+    uint8_t dtmf_decode,
+    uint8_t last_dtmf_event,
+    uint32_t samples_per_packet
 ) {
     char payload_display[512];
 
@@ -222,7 +254,13 @@ const char *rtp_pcap_details_packet_summary(
 }
 
 static void rtp_pcap_details(
-    pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, bool suppress, bool analysis, uint8_t dtmf_decode, time_display_t time_type,
+    pcap_t *pcap_file,
+    const RtpMap &rtpmap,
+    rtp_pcap_filter_t *filter,
+    bool suppress,
+    bool analysis,
+    uint8_t dtmf_decode,
+    time_display_t time_type,
     index_display_t index_type
 ) {
     rtphdr_t last_rtp; // on stack data structure to hold all RTP info from last
@@ -316,7 +354,14 @@ static void rtp_pcap_details(
 
         // prepare the buffers for time displays
         rtp_pcap_details_time_display(
-            time_type, time_display, sizeof(time_display), time_summary, sizeof(time_summary), &packet.pcap_hdr.ts, &last_clock, &first_clock
+            time_type,
+            time_display,
+            sizeof(time_display),
+            time_summary,
+            sizeof(time_summary),
+            &packet.pcap_hdr.ts,
+            &last_clock,
+            &first_clock
         );
 
         // print the packets out in a tcpdump fashion, according to input (if
@@ -356,7 +401,15 @@ static void rtp_pcap_details(
             if (analysis && stream_pkt_count > 1) {
                 char analysis[512];
                 rtp_pcap_details_analyze(
-                    analysis, sizeof(analysis), rtph, &last_rtp, rtpmap, samples_per_packet, dtmf_decode, last_dtmf_event, last_dtmf_time
+                    analysis,
+                    sizeof(analysis),
+                    rtph,
+                    &last_rtp,
+                    rtpmap,
+                    samples_per_packet,
+                    dtmf_decode,
+                    last_dtmf_event,
+                    last_dtmf_time
                 );
                 if (strlen(analysis) != 0) {
                     fprintf(stdout, "%s", analysis);
@@ -364,7 +417,14 @@ static void rtp_pcap_details(
             }
 
             rtp_pcap_details_packet_display(
-                pkt_display, sizeof(pkt_display), rtph, index_cur, time_display, rtpmap, dtmf_decode, rtp_pcap_packet_get_rtp_payload_length(&packet)
+                pkt_display,
+                sizeof(pkt_display),
+                rtph,
+                index_cur,
+                time_display,
+                rtpmap,
+                dtmf_decode,
+                rtp_pcap_packet_get_rtp_payload_length(&packet)
             );
             fprintf(stdout, "%s", pkt_display);
         } else {
@@ -378,7 +438,14 @@ static void rtp_pcap_details(
             index_held = index_cur;
 
             rtp_pcap_details_packet_display(
-                pkt_display, sizeof(pkt_display), rtph, index_cur, time_display, rtpmap, dtmf_decode, rtp_pcap_packet_get_rtp_payload_length(&packet)
+                pkt_display,
+                sizeof(pkt_display),
+                rtph,
+                index_cur,
+                time_display,
+                rtpmap,
+                dtmf_decode,
+                rtp_pcap_packet_get_rtp_payload_length(&packet)
             );
         }
 

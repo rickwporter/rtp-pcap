@@ -152,8 +152,15 @@ void error_inc(SrtpErrorMap &map, srtp_err_status_t error, int inc_value = 1) {
 }
 
 static void rtp_pcap_srtp(
-    const char *progname, pcap_t *input, rtp_pcap_filter_t *filter, cryptop_t op, srtp_algorithm_t alg, bool force, bool debug,
-    const std::string &key, const std::string &outfile
+    const char *progname,
+    pcap_t *input,
+    rtp_pcap_filter_t *filter,
+    cryptop_t op,
+    srtp_algorithm_t alg,
+    bool force,
+    bool debug,
+    const std::string &key,
+    const std::string &outfile
 ) {
     struct stat file_stat;
     pcap_t *output;
@@ -372,7 +379,8 @@ static void add_srtp_command(CLI::App &parent, int &exit_code, const char *progn
     CLI::App *subcmd = rtp_pcap_add_subcommand(parent, name, description);
     rtp_pcap_add_common_options(subcmd, args->common);
     rtp_pcap_keyword_choices(
-        subcmd->add_option("--alg", args->alg, "Cryptographic algorithm suite")->default_val("aes128-sha1-32"), {"aes128-sha1-32", "aes128-sha1-80"}
+        subcmd->add_option("--alg", args->alg, "Cryptographic algorithm suite")->default_val("aes128-sha1-32"),
+        {"aes128-sha1-32", "aes128-sha1-80"}
     );
     subcmd->add_option("--key", args->key, "Master key in hexadecimal or base64 format")->required()->type_name("KEY");
     subcmd->add_option("--output", args->outfile, "Output filename")->default_val("output.pcap")->type_name("FILENAME");

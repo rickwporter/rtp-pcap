@@ -154,7 +154,8 @@ void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args) {
     cmd->add_option("file", args.filename, "PCAP file")->type_name("FILENAME")->required();
 
     rtp_pcap_keyword_choices(
-        cmd->add_option("--filter", args.filter, "Flag to filter on source or destination IP/UDP")->default_val("dst"), {"src", "dst"}
+        cmd->add_option("--filter", args.filter, "Flag to filter on source or destination IP/UDP")->default_val("dst"),
+        {"src", "dst"}
     );
 
     cmd->add_option("--ip", args.addr, "Source or destination IP address")->type_name("ADDR");
@@ -169,12 +170,14 @@ void rtp_pcap_add_common_options(CLI::App *cmd, CommonArgs &args) {
 
 void rtp_pcap_add_packet_time_option(CLI::App *cmd, string &time, const string &default_value, const string &description) {
     rtp_pcap_keyword_choices(
-        cmd->add_option("--time", time, description)->default_val(default_value), {"none", "previous", "capture", "timeofday", "datetime"}
+        cmd->add_option("--time", time, description)->default_val(default_value),
+        {"none", "previous", "capture", "timeofday", "datetime"}
     );
 }
 
 void rtp_pcap_add_start_time_option(CLI::App *cmd, string &time) {
     rtp_pcap_keyword_choices(
-        cmd->add_option("--time", time, "Start time display format")->default_val("capture"), {"none", "capture", "timeofday", "datetime"}
+        cmd->add_option("--time", time, "Start time display format")->default_val("capture"),
+        {"none", "capture", "timeofday", "datetime"}
     );
 }
