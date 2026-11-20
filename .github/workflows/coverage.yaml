@@ -26,3 +26,9 @@ jobs:
       run: make env coverage-build
     - name: test
       run: make coverage
+    - name: upload
+      uses: codecov/codecov-action@v5
+      if: matrix.os == 'ubuntu-latest'
+      with:
+        files: coverage/coverage.xml
+        fail_ci_if_error: true

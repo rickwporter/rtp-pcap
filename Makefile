@@ -187,4 +187,5 @@ coverage-report: ## Summarize coverage from the latest instrumented test run
 	rm -rf $(COVERAGE_DIR)
 	mkdir -p $(COVERAGE_DIR)
 	python3 -m gcovr $(GCOVR_FLAGS) --html-details $(COVERAGE_INDEX)
+	python3 -m gcovr $(GCOVR_FLAGS) --xml $(COVERAGE_DIR)/coverage.xml
 	$(ECHO) "Full details avalable at $(COVERAGE_INDEX)"
