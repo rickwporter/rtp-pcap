@@ -30,7 +30,11 @@ typedef map<uint16_t, stream_counts_t> port_counts_t;
 typedef map<uint32_t, port_counts_t> address_counts_t;
 
 static void print_stream_span(
-    const char *indent, uint32_t start_index, const struct timeval *start_time, const struct timeval *end_time, time_display_t time_type,
+    const char *indent,
+    uint32_t start_index,
+    const struct timeval *start_time,
+    const struct timeval *end_time,
+    time_display_t time_type,
     const struct timeval *capture_start
 ) {
     fprintf(stdout, "%sStart index: %u\n", indent, start_index);
@@ -42,7 +46,13 @@ static void print_stream_span(
 }
 
 static void rtp_pcap_list(
-    const char *progname, pcap_t *pcap_file, const RtpMap &rtpmap, rtp_pcap_filter_t *filter, bool odd, bool all_udp, time_display_t time_type
+    const char *progname,
+    pcap_t *pcap_file,
+    const RtpMap &rtpmap,
+    rtp_pcap_filter_t *filter,
+    bool odd,
+    bool all_udp,
+    time_display_t time_type
 ) {
     map_count_t ssrcs;
     map_count_t addrs;

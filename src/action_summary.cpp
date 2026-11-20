@@ -18,7 +18,11 @@ typedef std::map<uint32_t, uint32_t> map_count_t;
 typedef map_count_t::iterator map_count_i;
 
 static void print_stream_span(
-    const char *indent, uint32_t start_index, const struct timeval *start_time, const struct timeval *end_time, time_display_t time_type,
+    const char *indent,
+    uint32_t start_index,
+    const struct timeval *start_time,
+    const struct timeval *end_time,
+    time_display_t time_type,
     const struct timeval *capture_start
 ) {
     fprintf(stdout, "%sStart index: %u\n", indent, start_index);
