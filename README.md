@@ -1,3 +1,4 @@
+[![codecov](https://codecov.io/gh/rickwporter/rtp-pcap/graph/badge.svg)](https://codecov.io/gh/rickwporter/rtp-pcap)
 # rtp-pcap
 
 C++ tool for looking at RTP in PCAP file.
